@@ -1,0 +1,84 @@
+﻿@model IEnumerable<Event>
+@{
+    ViewData["Title"] = "List";
+}
+
+<div class="row">
+    <div class="col-10">
+        <h1>Events</h1>
+    </div>
+    <span>
+        <a asp-action="Create" class="btn btn-success btn-md">
+            Add Event +
+        </a>
+    </span>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Category)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Place)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Time)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AdditionalInfo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Images)
+            </th>
+            <th>
+                Actions
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Category)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Place)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Time)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AdditionalInfo)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Images)
+                </td>
+                <td>
+                    <div class="events-list-actions">
+                        <a asp-action="Edit" asp-route-id="@item.Id" data-toggle="tooltip" data-placement="top" title="Edit">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" data-toggle="tooltip" data-placement="top" title="Delete">
+                            <i class="bi bi-trash-fill"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
