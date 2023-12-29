@@ -1,13 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Task0.Models.Entities;
+using NextProj.Models.Entities;
 
-namespace Task0.Data
+namespace NextProj.Data
 {
-    public class ApiContext : DbContext
+    public class AppDbContext : DbContext
     {
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options)
         {
-            optionsBuilder.UseInMemoryDatabase(databaseName: "Task0Db");
         }
 
         public DbSet<Event> Events { get; set; }
