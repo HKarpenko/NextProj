@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using Task0.Models.ViewModels;
+using NextProj.Models.ViewModels;
 
-namespace Task0.Controllers
+namespace NextProj.Controllers
 {
     public class HomeController : Controller
     {

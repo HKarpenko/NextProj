@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Task0.Models.Entities;
-using Task0.Repositories;
+using NextProj.Models.Entities;
+using NextProj.Repositories;
 
 namespace Task0.Controllers
 {
