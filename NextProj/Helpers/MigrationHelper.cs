@@ -9,7 +9,7 @@ namespace NextProj.Helpers
         {
             using (var scope = serviceProvider.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>(); // Replace with your DbContext type
+                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 dbContext.Database.Migrate();
             }
         }
