@@ -1,4 +1,4 @@
-﻿namespace Task0.Models.Entities
+﻿namespace NextProj.Models.Entities
 {
     public class Event : IEntity<long>
     {

@@ -1,4 +1,4 @@
-namespace Task0.Models.ViewModels
+namespace NextProj.Models.ViewModels
 {
     public class ErrorViewModel
     {

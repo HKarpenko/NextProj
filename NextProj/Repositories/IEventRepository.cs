@@ -1,6 +1,6 @@
-﻿using Task0.Models.Entities;
+﻿using NextProj.Models.Entities;
 
-namespace Task0.Repositories
+namespace NextProj.Repositories
 {
     public interface IEventRepository
     {
