@@ -3,6 +3,57 @@
     ViewData["Title"] = "List";
 }
 
+<script>
+    function applyFilters() {
+        const categoryFilter = document.getElementById("categoryFilter").value;
+        const placeFilter = document.getElementById("placeFilter").value;
+        const timeFilter = document.getElementById("timeFilter").value;
+
+        const queryString = new URLSearchParams();
+
+        if (categoryFilter) {
+            queryString.set("category", encodeURIComponent(categoryFilter));
+        }
+
+        if (placeFilter) {
+            queryString.set("place", encodeURIComponent(placeFilter));
+        }
+
+        if (timeFilter) {
+            queryString.set("time", timeFilter);
+        }
+
+        window.location.search = queryString.toString();
+
+    }
+
+    function setSelectedValues() {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const categoryFilter = document.getElementById("categoryFilter");
+        const placeFilter = document.getElementById("placeFilter");
+        const timeFilter = document.getElementById("timeFilter");
+
+        const categoryParam = urlParams.get("category");
+        if (categoryParam) {
+            categoryFilter.value = categoryParam;
+        }
+
+        const placeParam = urlParams.get("place");
+        if (placeParam) {
+            placeFilter.value = placeParam;
+        }
+        
+        const timeParam = urlParams.get("time");
+        if (timeParam) {
+            timeFilter.value = timeParam;
+            console.log('Saved Time2:', timeFilter.value);
+        }
+    }
+
+    window.onload = setSelectedValues;
+</script>
+
 <div class="row">
     <div class="col-10">
         <h1>Events</h1>
@@ -13,6 +64,35 @@
         </a>
     </span>
 </div>
+
+<form method="get">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="categoryFilter">Filter by Category:</label>
+            <select id="categoryFilter" name="category" class="form-control" onchange="applyFilters()">
+                <option value="">All Categories</option>
+                @foreach (var category in Model.Select(e => e.Category).OfType<Category>().Distinct())
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="placeFilter">Filter by Place:</label>
+            <select id="placeFilter" name="place" class="form-control" onchange="applyFilters()">
+                <option value="">All Places</option>
+                @foreach (var place in Model.Select(e => e.Place).OfType<Place>().Distinct())
+                {
+                    <option value="@place.Id">@place.DisplayName</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="timeFilter">Start Time:</label>
+            <input type="datetime-local" id="timeFilter" name="time" class="form-control" onchange="applyFilters()">
+        </div>
+    </div>
+</form>
 
 <table class="table">
     <thead>
@@ -44,41 +124,50 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Category)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Description)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Place)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Time)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.AdditionalInfo)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Images)
-                </td>
-                <td>
-                    <div class="events-list-actions">
-                        <a asp-action="Edit" asp-route-id="@item.Id" data-toggle="tooltip" data-placement="top" title="Edit">
-                            <i class="bi bi-pencil-fill"></i>
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" data-toggle="tooltip" data-placement="top" title="Delete">
-                            <i class="bi bi-trash-fill"></i>
-                        </a>
-                    </div>
-                </td>
-            </tr>
+        @{
+            var queryCategory = Context.Request.Query["category"];
+            var queryPlace = Context.Request.Query["place"];
+            var queryTime = Context.Request.Query["time"];
+            var events = Model.Where(e => (string.IsNullOrEmpty(queryCategory) || e.Category?.Id.ToString() == queryCategory)
+                && (string.IsNullOrEmpty(queryPlace) || e.Place?.Id.ToString() == queryPlace)
+                && (string.IsNullOrEmpty(queryTime) || e.Time > DateTime.Parse(queryTime!)));
+
+            foreach (var item in events)
+            {
+                <tr>
+                    <td>
+                        @item.Name
+                    </td>
+                    <td>
+                        @(item.Category == null ? "" : item.Category.Name)
+                    </td>
+                    <td>
+                        @item.Description
+                    </td>
+                    <td>
+                        @(item.Place == null ? "" : item.Place.DisplayName)
+                    </td>
+                    <td>
+                        @item.Time
+                    </td>
+                    <td>
+                        @item.AdditionalInfo
+                    </td>
+                    <td>
+                        @item.Images
+                    </td>
+                    <td>
+                        <div class="events-list-actions">
+                            <a asp-action="Edit" asp-route-id="@item.Id" data-toggle="tooltip" data-placement="top" title="Edit">
+                                <i class="bi bi-pencil-fill"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" data-toggle="tooltip" data-placement="top" title="Delete">
+                                <i class="bi bi-trash-fill"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
         }
     </tbody>
 </table>
