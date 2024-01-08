@@ -1,4 +1,5 @@
-﻿using NextProj.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using NextProj.Data;
 using NextProj.Models.Entities;
 
 namespace NextProj.Repositories
@@ -30,14 +31,20 @@ namespace NextProj.Repositories
 
         public List<Event> GetAllEvents()
         {
-            var list = _context.Events.ToList();
+            var list = _context.Events.OrderBy(e => e.Time)
+                .Include(p => p.Place)
+                .Include(c => c.Category)
+                .ToList();
 
             return list;
         }
 
         public Event GetEventById(long id)
         {
-            var eventModel = _context.Events.FirstOrDefault(e => e.Id == id);
+            var eventModel = _context.Events
+                .Include(p => p.Place)
+                .Include(c => c.Category)
+                .FirstOrDefault(e => e.Id == id);
 
             return eventModel;
         }
