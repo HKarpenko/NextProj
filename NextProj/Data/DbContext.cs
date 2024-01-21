@@ -11,7 +11,13 @@ namespace NextProj.Data
         }
 
         public DbSet<Event> Events { get; set; }
+        public DbSet<EventOccurrence> EventsOccurrences { get; set; }
         public DbSet<Place> Places { get; set; }
         public DbSet<Category> Categories { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseLazyLoadingProxies();
+        }
     }
 }

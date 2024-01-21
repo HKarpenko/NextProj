@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using NextProj.Helpers;
 using NextProj.Data;
 using NextProj.Repositories;
+using NextProj.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,12 +10,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseLazyLoadingProxies();
+});
 
+//Register Repositories
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IPlaceRepository, PlaceRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
+//Register Services
+builder.Services.AddScoped<IEventService,  EventService>();
 builder.Services.AddHostedService<DbSeeder>();
 
 var app = builder.Build();

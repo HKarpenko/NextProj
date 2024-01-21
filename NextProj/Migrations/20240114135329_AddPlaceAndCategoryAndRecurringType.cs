@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace NextProj.Migrations
 {
     /// <inheritdoc />
-    public partial class AddCategoryAndPlaceEntities : Migration
+    public partial class AddPlaceAndCategoryAndRecurringType : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,6 +21,10 @@ namespace NextProj.Migrations
                 name: "Place",
                 table: "Events");
 
+            migrationBuilder.DropColumn(
+                name: "Time",
+                table: "Events");
+
             migrationBuilder.AddColumn<long>(
                 name: "CategoryId",
                 table: "Events",
@@ -30,6 +35,12 @@ namespace NextProj.Migrations
                 name: "PlaceId",
                 table: "Events",
                 type: "bigint",
+                nullable: true);
+
+            migrationBuilder.AddColumn<int>(
+                name: "RecurringType",
+                table: "Events",
+                type: "int",
                 nullable: true);
 
             migrationBuilder.CreateTable(
@@ -43,6 +54,26 @@ namespace NextProj.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EventsOccurrences",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Time = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EventId = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EventsOccurrences", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EventsOccurrences_Events_EventId",
+                        column: x => x.EventId,
+                        principalTable: "Events",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -70,6 +101,11 @@ namespace NextProj.Migrations
                 name: "IX_Events_PlaceId",
                 table: "Events",
                 column: "PlaceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventsOccurrences_EventId",
+                table: "EventsOccurrences",
+                column: "EventId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Events_Categories_CategoryId",
@@ -101,6 +137,9 @@ namespace NextProj.Migrations
                 name: "Categories");
 
             migrationBuilder.DropTable(
+                name: "EventsOccurrences");
+
+            migrationBuilder.DropTable(
                 name: "Places");
 
             migrationBuilder.DropIndex(
@@ -119,6 +158,10 @@ namespace NextProj.Migrations
                 name: "PlaceId",
                 table: "Events");
 
+            migrationBuilder.DropColumn(
+                name: "RecurringType",
+                table: "Events");
+
             migrationBuilder.AddColumn<string>(
                 name: "Category",
                 table: "Events",
@@ -132,6 +175,13 @@ namespace NextProj.Migrations
                 type: "nvarchar(max)",
                 nullable: false,
                 defaultValue: "");
+
+            migrationBuilder.AddColumn<DateTime>(
+                name: "Time",
+                table: "Events",
+                type: "datetime2",
+                nullable: false,
+                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
         }
     }
 }

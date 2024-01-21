@@ -3,11 +3,11 @@ using NextProj.Models.Entities;
 
 namespace NextProj.Repositories
 {
-    public class PlaceRepository : IPlaceRepository
+    public class PlaceRepository : BaseRepository, IPlaceRepository
     {
         private readonly AppDbContext _context;
 
-        public PlaceRepository(AppDbContext context)
+        public PlaceRepository(AppDbContext context) : base(context)
         {
             _context = context;
         }

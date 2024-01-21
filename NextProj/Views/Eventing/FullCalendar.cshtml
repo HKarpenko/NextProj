@@ -1,0 +1,26 @@
+﻿@model IEnumerable<EventViewModel>
+@{
+    ViewData["Title"] = "Events Calendar";
+}
+
+<div id='calendar'></div>
+
+@section Scripts
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendar = new FullCalendar.Calendar($("#calendar")[0], {
+                initialView: 'dayGridMonth',
+                events: [
+                    @foreach (var eventItem in Model)
+                    {
+                        <text>
+                        { title: '@eventItem.Name', start: '@eventItem.Time.ToString("yyyy-MM-ddTHH:mm")' },
+                        </text>
+                    }
+                ]
+            });
+            calendar.render();
+        });
+    </script>
+}

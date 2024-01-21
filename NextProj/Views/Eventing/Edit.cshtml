@@ -1,4 +1,4 @@
-﻿@model Event
+﻿@model EventViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -16,38 +16,120 @@
 <div class="row">
     <div class="col-md-2"></div>
     <div class="col-md-6">
-        <form asp-action="Edit">
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                <select asp-for="CategoryId" class="form-control" asp-items="@ViewBag.Categories"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="PlaceId" class="control-label"></label>
-                <select asp-for="PlaceId" class="form-control" asp-items="@ViewBag.Places"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Time" class="control-label"></label>
-                <input asp-for="Time" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="AdditionalInfo" class="control-label"></label>
-                <input asp-for="AdditionalInfo" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="Images" class="control-label"></label>
-                <input asp-for="Images" class="form-control" />
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary float-right" />
-            </div>
-        </form>
+        <div class="form-group">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" class="form-control" id="modelName" />
+        </div>
+        <div class="form-group">
+            <label asp-for="CategoryId" class="control-label"></label>
+            <select asp-for="CategoryId" class="form-control" asp-items="@ViewBag.Categories" id="modelCategoryId"></select>
+        </div>
+        <div class="form-group">
+            <label asp-for="PlaceId" class="control-label"></label>
+            <select asp-for="PlaceId" class="form-control" asp-items="@ViewBag.Places" id="modelPlaceId"></select>
+        </div>
+        <div class="form-group">
+            <label asp-for="Time" class="control-label"></label>
+            <input asp-for="Time" class="form-control" id="modelTime" />
+        </div>
+        <div class="form-group">
+            <label asp-for="RecurringType"></label>
+            <select asp-for="RecurringType" class="form-control" id="modelRecurringType">
+                <option value="@null">N/A</option>
+                @foreach (var type in Enum.GetValues(typeof(RecurringType)))
+                {
+                    <option value="@((int)type)">@type</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label asp-for="Description" class="control-label"></label>
+            <input asp-for="Description" class="form-control" id="modelDescription" />
+        </div>
+        <div class="form-group">
+            <label asp-for="AdditionalInfo" class="control-label"></label>
+            <input asp-for="AdditionalInfo" class="form-control" id="modelAdditionalInfo" />
+        </div>
+        <div class="form-group">
+            <label asp-for="Images" class="control-label"></label>
+            <input asp-for="Images" class="form-control" id="modelImages" />
+        </div>
+        <div class="form-group">
+            <button class="btn btn-primary float-right"
+                    onclick="'@Model.RecurringType' !== '' ? showSaveConfirmation() : confirmSave(false)">
+                Save
+            </button>
+        </div>
     </div>
 </div>
+
+<div class="modal fade" id="recurringTypeModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="recurringTypeModalLabel">Select save type</h5>
+                <button type="button" class="close" aria-label="Close" onclick="closeModal()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Do you want to save whole series or occurence?
+            </div>
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-primary"
+                        onclick="confirmSave(true)">
+                    Series
+                </button>
+                <button type="button"
+                        class="btn btn-primary"
+                        onclick="confirmSave(false)">
+                    Occurrence
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts 
+{
+    <script>
+        function showSaveConfirmation() {
+            $("#recurringTypeModal").modal("show");
+        }
+
+        function closeModal() {
+            $("#recurringTypeModal").modal("hide");
+        }
+
+        function confirmSave(isSeries) {
+            const model = {
+                Id: @Model.Id,
+                Name: $("#modelName").val(),
+                Images: $("#modelImages").val(),
+                Description: $("#modelDescription").val(),
+                CategoryId: +$("#modelCategoryId").val(),
+                PlaceId: +$("#modelPlaceId").val(),
+                AdditionalInfo: $("#modelAdditionalInfo").val(),
+                Time: $("#modelTime").val(),
+                RecurringType: $("#modelRecurringType").val() ? +$("#modelRecurringType").val() : null,
+                isSeries
+            };
+
+            $.ajax({
+                url: '/Eventing/Edit',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(model),
+                success: function (data) {
+                    if (data.redirectTo) {
+                        window.location.href = data.redirectTo;
+                    }
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
+            });
+        }
+    </script>
+}

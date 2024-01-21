@@ -1,4 +1,4 @@
-﻿@model Event
+﻿@model EventViewModel
 @{
     ViewData["Title"] = "Create";
 }
@@ -21,16 +21,26 @@
                 <input asp-for="Name" class="form-control" />
             </div>
             <div class="form-group">
-                <label asp-for="Category" class="control-label"></label>
-                <input asp-for="Category" class="form-control" />
+                <label asp-for="CategoryId" class="control-label"></label>
+                <select asp-for="CategoryId" class="form-control" asp-items="@ViewBag.Categories"></select>
             </div>
             <div class="form-group">
-                <label asp-for="Place" class="control-label"></label>
-                <input asp-for="Place" class="form-control" />
+                <label asp-for="PlaceId" class="control-label"></label>
+                <select asp-for="PlaceId" class="form-control" asp-items="@ViewBag.Places"></select>
             </div>
             <div class="form-group">
                 <label asp-for="Time" class="control-label"></label>
                 <input asp-for="Time" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="RecurringType"></label>
+                <select asp-for="RecurringType" class="form-control">
+                    <option value="@null">N/A</option>
+                    @foreach (var type in Enum.GetValues(typeof(RecurringType)))
+                    {
+                        <option value="@((int)type)">@type</option>
+                    }
+                </select>
             </div>
             <div class="form-group">
                 <label asp-for="Description" class="control-label"></label>

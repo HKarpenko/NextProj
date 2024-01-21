@@ -2,7 +2,7 @@
 
 namespace NextProj.Repositories
 {
-    public interface ICategoryRepository
+    public interface ICategoryRepository : IBaseRepository
     {
         List<Category> GetAll();
     }

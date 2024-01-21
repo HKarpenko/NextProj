@@ -2,7 +2,7 @@
 
 namespace NextProj.Repositories
 {
-    public interface IPlaceRepository
+    public interface IPlaceRepository : IBaseRepository
     {
         List<Place> GetAll();
     }

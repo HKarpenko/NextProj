@@ -12,8 +12,8 @@ using NextProj.Data;
 namespace NextProj.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240105135746_AddCategoryAndPlaceEntities")]
-    partial class AddCategoryAndPlaceEntities
+    [Migration("20240114135329_AddPlaceAndCategoryAndRecurringType")]
+    partial class AddPlaceAndCategoryAndRecurringType
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -72,8 +72,8 @@ namespace NextProj.Migrations
                     b.Property<long?>("PlaceId")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("Time")
-                        .HasColumnType("datetime2");
+                    b.Property<int?>("RecurringType")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -82,6 +82,27 @@ namespace NextProj.Migrations
                     b.HasIndex("PlaceId");
 
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("NextProj.Models.Entities.EventOccurrence", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("EventId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("EventsOccurrences");
                 });
 
             modelBuilder.Entity("NextProj.Models.Entities.Place", b =>
@@ -126,6 +147,22 @@ namespace NextProj.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("Place");
+                });
+
+            modelBuilder.Entity("NextProj.Models.Entities.EventOccurrence", b =>
+                {
+                    b.HasOne("NextProj.Models.Entities.Event", "Event")
+                        .WithMany("Occurrences")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("NextProj.Models.Entities.Event", b =>
+                {
+                    b.Navigation("Occurrences");
                 });
 #pragma warning restore 612, 618
         }
