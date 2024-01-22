@@ -21,7 +21,9 @@ builder.Services.AddScoped<IPlaceRepository, PlaceRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 //Register Services
-builder.Services.AddScoped<IEventService,  EventService>();
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IPlaceService, PlaceService>();
 builder.Services.AddHostedService<DbSeeder>();
 
 var app = builder.Build();

@@ -12,7 +12,7 @@ namespace NextProj.Repositories
             _context = context;
         }
 
-        public List<Category> GetAll()
+        public IEnumerable<Category> GetAll()
         {
             return _context.Categories.ToList();
         }

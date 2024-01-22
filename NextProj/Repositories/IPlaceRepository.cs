@@ -4,6 +4,6 @@ namespace NextProj.Repositories
 {
     public interface IPlaceRepository : IBaseRepository
     {
-        List<Place> GetAll();
+        IEnumerable<Place> GetAll();
     }
 }

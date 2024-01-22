@@ -54,7 +54,8 @@ namespace NextProj.Services
                 Place = eventOccurrence.Event.Place.DisplayName,
                 AdditionalInfo = eventOccurrence.Event.AdditionalInfo,
                 Time = eventOccurrence.Time,
-                RecurringType = eventOccurrence.Event.RecurringType
+                RecurringType = eventOccurrence.Event.RecurringType,
+                RecurringUntil = eventOccurrence.Event.RecurringUntil
             };
         }
         public void AddEvent(EventViewModel eventViewModel)
@@ -65,29 +66,6 @@ namespace NextProj.Services
 
             _eventRepository.AddEvent(CreateNewEvent(eventViewModel,occurrences));
             _eventRepository.SaveChanges();
-        }
-
-        private List<EventOccurrence> GenerateOccurrences(DateTime startDate, RecurringType recurringType)
-        {
-            var resultOccurrences = new List<EventOccurrence>();
-            var currentTime = startDate;
-            var endTime = startDate.AddYears(recurringDurationYears);
-
-            while (currentTime <= endTime)
-            {
-                resultOccurrences.Add(new EventOccurrence() { Time = currentTime });
-
-                currentTime += recurringType switch
-                {
-                    RecurringType.Daily => TimeSpan.FromDays(1),
-                    RecurringType.Weekly => TimeSpan.FromDays(7),
-                    RecurringType.Biweekly => TimeSpan.FromDays(14),
-                    RecurringType.Monthly => (currentTime.AddMonths(1) - currentTime),
-                    _ => throw new ArgumentException("Invalid recurring type")
-                };
-            }
-
-            return resultOccurrences;
         }
 
         public void DeleteEventOccurrences(long occurenceId, bool isSeries)
@@ -175,6 +153,29 @@ namespace NextProj.Services
                 RecurringType = eventViewModel.RecurringType,
                 Occurrences = occurrences
             };
+        }
+
+        private List<EventOccurrence> GenerateOccurrences(DateTime startDate, RecurringType recurringType)
+        {
+            var resultOccurrences = new List<EventOccurrence>();
+            var currentTime = startDate;
+            var endTime = startDate.AddYears(recurringDurationYears);
+
+            while (currentTime <= endTime)
+            {
+                resultOccurrences.Add(new EventOccurrence() { Time = currentTime });
+
+                currentTime += recurringType switch
+                {
+                    RecurringType.Daily => TimeSpan.FromDays(1),
+                    RecurringType.Weekly => TimeSpan.FromDays(7),
+                    RecurringType.Biweekly => TimeSpan.FromDays(14),
+                    RecurringType.Monthly => (currentTime.AddMonths(1) - currentTime),
+                    _ => throw new ArgumentException("Invalid recurring type")
+                };
+            }
+
+            return resultOccurrences;
         }
     }
 }

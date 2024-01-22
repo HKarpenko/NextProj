@@ -12,7 +12,7 @@ namespace NextProj.Repositories
             _context = context;
         }
 
-        public List<Place> GetAll()
+        public IEnumerable<Place> GetAll()
         {
             return _context.Places.ToList();
         }
