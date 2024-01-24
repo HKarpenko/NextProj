@@ -32,7 +32,8 @@ namespace NextProj.Services
                 Place = ee.Place.DisplayName,
                 AdditionalInfo = ee.AdditionalInfo,
                 Time = oc.Time,
-                RecurringType = ee.RecurringType
+                RecurringType = ee.RecurringType,
+                RecurringUntil = ee.RecurringUntil
             }))
             .OrderBy(e => e.Time)
             .ToList();
@@ -62,22 +63,22 @@ namespace NextProj.Services
         {
             var occurrences = eventViewModel.RecurringType == null ? 
                 new List<EventOccurrence> (){ new EventOccurrence() { Time = eventViewModel.Time } }
-                : GenerateOccurrences(eventViewModel.Time, (RecurringType)eventViewModel.RecurringType);
+                : GenerateOccurrences(eventViewModel);
 
             _eventRepository.AddEvent(CreateNewEvent(eventViewModel,occurrences));
             _eventRepository.SaveChanges();
         }
 
-        public void DeleteEventOccurrences(long occurenceId, bool isSeries)
+        public void DeleteEventOccurrences(long occurrenceId, bool isSeries)
         {
             if(isSeries)
             {
-                var occurrence = _eventRepository.GetEventOccurrenceById(occurenceId);
+                var occurrence = _eventRepository.GetEventOccurrenceById(occurrenceId);
                 _eventRepository.DeleteEvent(occurrence.EventId);
             }
             else
             {
-                _eventRepository.DeleteEventOccurrence(occurenceId);
+                _eventRepository.DeleteEventOccurrence(occurrenceId);
             }
             _eventRepository.SaveChanges();
         }
@@ -111,16 +112,16 @@ namespace NextProj.Services
                 }
                 else
                 {
-                    var generatedOccurrences = GenerateOccurrences(eventViewModel.Time, (RecurringType)eventViewModel.RecurringType);
+                    var generatedOccurrences = GenerateOccurrences(eventViewModel);
                     if (eventModel.RecurringType == null)
                     {
-                        eventModel.Occurrences = eventModel.Occurrences.Concat(generatedOccurrences.Skip(1)).ToList();
+                        generatedOccurrences = eventModel.Occurrences.Concat(generatedOccurrences.Skip(1)).ToList();
                     }
                     else
                     {
                         eventModel.Occurrences.ToList().ForEach(oc => _eventRepository.DeleteEventOccurrence(oc.Id));
-                        eventModel.Occurrences = generatedOccurrences;
                     }
+                    eventModel.Occurrences = generatedOccurrences;
                     UpdateEvent(eventViewModel, eventModel);
                 }
             }
@@ -137,6 +138,7 @@ namespace NextProj.Services
             eventModel.CategoryId = eventViewModel.CategoryId;
             eventModel.PlaceId = eventViewModel.PlaceId;
             eventModel.RecurringType = eventViewModel.RecurringType;
+            eventModel.RecurringUntil = eventModel.RecurringUntil;
             eventModel.AdditionalInfo = eventViewModel.AdditionalInfo;
         }
 
@@ -151,21 +153,22 @@ namespace NextProj.Services
                 Images = eventViewModel.Images,
                 PlaceId = eventViewModel.PlaceId,
                 RecurringType = eventViewModel.RecurringType,
+                RecurringUntil = eventViewModel.RecurringUntil,
                 Occurrences = occurrences
             };
         }
 
-        private List<EventOccurrence> GenerateOccurrences(DateTime startDate, RecurringType recurringType)
+        private List<EventOccurrence> GenerateOccurrences(EventViewModel viewModel)
         {
             var resultOccurrences = new List<EventOccurrence>();
-            var currentTime = startDate;
-            var endTime = startDate.AddYears(recurringDurationYears);
+            var currentTime = viewModel.Time;
+            var endTime = viewModel.RecurringUntil;
 
             while (currentTime <= endTime)
             {
                 resultOccurrences.Add(new EventOccurrence() { Time = currentTime });
 
-                currentTime += recurringType switch
+                currentTime += viewModel.RecurringType switch
                 {
                     RecurringType.Daily => TimeSpan.FromDays(1),
                     RecurringType.Weekly => TimeSpan.FromDays(7),

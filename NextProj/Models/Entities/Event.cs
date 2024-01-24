@@ -13,6 +13,7 @@ namespace NextProj.Models.Entities
         public long? PlaceId { get; set; }
         public virtual Place Place { get; set; }
         public RecurringType? RecurringType { get; set; }
+        public DateTime? RecurringUntil { get; set; }
         public string AdditionalInfo { get; set; }
         public virtual IEnumerable<EventOccurrence> Occurrences { get; set; }
     }

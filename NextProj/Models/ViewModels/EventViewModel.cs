@@ -15,6 +15,7 @@ namespace NextProj.Models.ViewModels
         public string AdditionalInfo { get; set; }
         public DateTime Time { get; set; }
         public RecurringType? RecurringType { get; set; }
+        public DateTime? RecurringUntil { get; set; }
     }
 
     public class SaveEventViewModel : EventViewModel

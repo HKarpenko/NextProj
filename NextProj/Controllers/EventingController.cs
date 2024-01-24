@@ -48,7 +48,7 @@ namespace Task0.Controllers
         [HttpPost]
         public IActionResult Create(EventViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && CheckEventModelValidity(viewModel))
             {
                 _eventService.AddEvent(viewModel);
                 return RedirectToAction("EventsList");
@@ -69,7 +69,7 @@ namespace Task0.Controllers
         [HttpPost]
         public IActionResult Edit([FromBody] SaveEventViewModel model)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && CheckEventModelValidity(model))
             {
                 _eventService.EditEvent(model);
 
@@ -79,9 +79,9 @@ namespace Task0.Controllers
             return View(model);
         }
 
-        public IActionResult Delete(long occurenceId, bool isSeries)
+        public IActionResult Delete(long occurrenceId, bool isSeries)
         {
-            _eventService.DeleteEventOccurrences(occurenceId, isSeries);
+            _eventService.DeleteEventOccurrences(occurrenceId, isSeries);
 
             return RedirectToAction("EventsList");
         }
@@ -100,6 +100,12 @@ namespace Task0.Controllers
 
             ViewData["Places"] = new SelectList(places, "Id", "DisplayName");
             ViewData["Categories"] = new SelectList(categories, "Id", "Name");
+        }
+
+        private bool CheckEventModelValidity(EventViewModel viewModel)
+        {
+            return (viewModel.RecurringType == null || viewModel.RecurringUntil != null) &&
+                (viewModel.RecurringUntil == null || viewModel.Time < viewModel.RecurringUntil);
         }
     }
 }
