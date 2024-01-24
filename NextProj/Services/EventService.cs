@@ -1,4 +1,5 @@
-﻿using NextProj.Models.Entities;
+﻿using Microsoft.Extensions.Logging;
+using NextProj.Models.Entities;
 using NextProj.Models.Enums;
 using NextProj.Models.ViewModels;
 using NextProj.Repositories;
@@ -9,14 +10,14 @@ namespace NextProj.Services
     {
         private readonly IEventRepository _eventRepository;
 
-        private const int recurringDurationYears = 1;
+        private const int pageSize = 10;
 
         public EventService(IEventRepository eventRepository)
         {
             _eventRepository = eventRepository;
         }
 
-        public List<EventViewModel> GetAllEvents()
+        public IEnumerable<EventViewModel> GetAllEvents()
         {
             var eventEntities = _eventRepository.GetAllEvents();
 
@@ -35,8 +36,7 @@ namespace NextProj.Services
                 RecurringType = ee.RecurringType,
                 RecurringUntil = ee.RecurringUntil
             }))
-            .OrderBy(e => e.Time)
-            .ToList();
+            .OrderBy(e => e.Time);
         }
 
         public EventViewModel GetEventById(long id)
@@ -179,6 +179,36 @@ namespace NextProj.Services
             }
 
             return resultOccurrences;
+        }
+
+        private IEnumerable<EventViewModel> GetFilteredEvents(IQueryCollection query)
+        {
+            var allEvents = GetAllEvents();
+            if(query.Count == 0)
+            {
+                return allEvents;
+            }
+            string categoryFilter = query["category"];
+            string placeFilter = query["place"];
+            DateTime? timeFilter = string.IsNullOrEmpty(query["time"]) ? null : DateTime.Parse(query["time"]);
+
+            return allEvents.Where(e => (string.IsNullOrEmpty(categoryFilter) || e.CategoryId.ToString() == categoryFilter)
+                && (string.IsNullOrEmpty(placeFilter) || e.PlaceId.ToString() == placeFilter)
+                && (timeFilter == null || e.Time > timeFilter));
+        }
+
+        public IEnumerable<EventViewModel> GetEventsPage(IQueryCollection query)
+        {
+            var filteredEvents = GetFilteredEvents(query);
+            int page = string.IsNullOrEmpty(query["page"]) ? 1 : int.Parse(query["page"]);
+
+            return filteredEvents.Skip((page - 1) * pageSize).Take(pageSize);
+        }
+
+        public int GetEventPagesCount(IQueryCollection query)
+        {
+            var eventsCount = GetFilteredEvents(query).Count();
+            return (int)Math.Ceiling(eventsCount / (double)pageSize);
         }
     }
 }

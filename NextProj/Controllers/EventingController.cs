@@ -23,8 +23,8 @@ namespace Task0.Controllers
         {
             ViewData["Places"] = _placeService.GetAllPlaces();
             ViewData["Categories"] = _categoryService.GetAllCategories();
-
-            var events = _eventService.GetAllEvents();
+            ViewData["TotalPages"] = _eventService.GetEventPagesCount(Request.Query);
+            var events = _eventService.GetEventsPage(Request.Query);
 
             return View(events);
         }

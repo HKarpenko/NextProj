@@ -4,10 +4,12 @@ namespace NextProj.Services
 {
     public interface IEventService
     {
-        List<EventViewModel> GetAllEvents();
+        IEnumerable<EventViewModel> GetAllEvents();
         EventViewModel GetEventById(long id);
         void AddEvent(EventViewModel eventViewModel);
         void EditEvent(SaveEventViewModel eventViewModel);
         void DeleteEventOccurrences(long eventId, bool isSeries);
+        int GetEventPagesCount(IQueryCollection query);
+        IEnumerable<EventViewModel> GetEventsPage(IQueryCollection query);
     }
 }

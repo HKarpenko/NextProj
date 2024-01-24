@@ -36,15 +36,14 @@ namespace NextProj.Repositories
             }
         }
 
-        public List<Event> GetAllEvents()
+        public IEnumerable<Event> GetAllEvents()
         {
-            var list = _context.Events
+            var events = _context.Events
                 .Include(p => p.Place)
                 .Include(c => c.Category)
-                .Include(o => o.Occurrences)
-                .ToList();
+                .Include(o => o.Occurrences);
 
-            return list;
+            return events;
         }
 
         public Event GetEventById(long id)

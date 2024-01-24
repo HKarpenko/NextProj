@@ -4,7 +4,7 @@ namespace NextProj.Repositories
 {
     public interface IEventRepository : IBaseRepository
     {
-        List<Event> GetAllEvents();
+        IEnumerable<Event> GetAllEvents();
         Event GetEventById(long id);
         Event GetEventByOccurrenceId(long occurenceId);
         EventOccurrence GetEventOccurrenceById(long occurenceId);

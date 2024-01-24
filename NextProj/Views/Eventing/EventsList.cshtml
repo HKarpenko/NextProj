@@ -23,7 +23,7 @@
     <div class="row mb-3">
         <div class="col-md-4">
             <label for="categoryFilter">Filter by Category:</label>
-            <select id="categoryFilter" name="category" class="form-control" onchange="applyFilters()">
+            <select id="categoryFilter" role="button" name="category" class="form-control" onchange="setCategoryFilter()">
                 <option value="">All Categories</option>
                 @foreach (var category in ViewBag.Categories)
                 {
@@ -33,7 +33,7 @@
         </div>
         <div class="col-md-4">
             <label for="placeFilter">Filter by Place:</label>
-            <select id="placeFilter" name="place" class="form-control" onchange="applyFilters()">
+            <select id="placeFilter" role="button" name="place" class="form-control" onchange="setPlaceFilter()">
                 <option value="">All Places</option>
                 @foreach (var place in ViewBag.Places)
                 {
@@ -43,7 +43,7 @@
         </div>
         <div class="col-md-4">
             <label for="timeFilter">Start Time:</label>
-            <input type="datetime-local" id="timeFilter" name="time" class="form-control" onchange="applyFilters()">
+            <input type="datetime-local" role="button" id="timeFilter" name="time" class="form-control" onchange="setTimeFilter()">
         </div>
     </div>
 </form>
@@ -78,60 +78,71 @@
         </tr>
     </thead>
     <tbody>
-        @{
-            var queryCategory = Context.Request.Query["category"];
-            var queryPlace = Context.Request.Query["place"];
-            var queryTime = Context.Request.Query["time"];
-            var events = Model.Where(e => (string.IsNullOrEmpty(queryCategory) || e.CategoryId.ToString() == queryCategory)
-                && (string.IsNullOrEmpty(queryPlace) || e.PlaceId.ToString() == queryPlace)
-                && (string.IsNullOrEmpty(queryTime) || e.Time > DateTime.Parse(queryTime!)));
-
-            foreach (var item in events)
-            {
-                <tr>
-                    <td>
-                        @item.Name
-                    </td>
-                    <td>
-                        @(item.Category == null ? "" : item.Category)
-                    </td>
-                    <td>
-                        @item.Description
-                    </td>
-                    <td>
-                        @(item.Place == null ? "" : item.Place)
-                    </td>
-                    <td>
-                        @item.Time
-                    </td>
-                    <td>
-                        @item.AdditionalInfo
-                    </td>
-                    <td>
-                        @item.Images
-                    </td>
-                    <td>
-                        <div class="events-list-actions">
-                            <a asp-action="Edit" 
-                                asp-route-id="@item.Id"
-                                data-toggle="tooltip"
-                                title="Edit"
-                            >
-                                <i class="bi bi-pencil-fill"></i>
-                            </a>
-                            <a class="delete-event" 
-                                data-toggle="tooltip" 
-                                title="Delete"
-                                onclick="@(item.RecurringType == null ? "confirmDelete(false, '" + item.Id + "')" : "showDeleteConfirmation('" + item.Id + "')")">
-                                <i class="bi bi-trash-fill"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-            }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @item.Name
+                </td>
+                <td>
+                    @(item.Category == null ? "" : item.Category)
+                </td>
+                <td>
+                    @item.Description
+                </td>
+                <td>
+                    @(item.Place == null ? "" : item.Place)
+                </td>
+                <td>
+                    @item.Time
+                </td>
+                <td>
+                    @item.AdditionalInfo
+                </td>
+                <td>
+                    @item.Images
+                </td>
+                <td>
+                    <div class="events-list-actions">
+                        <a asp-action="Edit" 
+                            asp-route-id="@item.Id"
+                            data-toggle="tooltip"
+                            title="Edit"
+                        >
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        <a class="delete-event" 
+                            data-toggle="tooltip" 
+                            title="Delete"
+                            role="button"
+                            onclick="@(item.RecurringType == null ? "confirmDelete(false, '" + item.Id + "')" : "showDeleteConfirmation('" + item.Id + "')")"
+                        >
+                            <i class="bi bi-trash-fill"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
         }
     </tbody>
 </table>
+
+<div class="row">
+    <div class="col-md-12 text-center">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                @for (var i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(Context.Request.Query["page"] == i.ToString() ? "active" : "")">
+                        <a class="page-link" role="button" onclick="setPage('@i')">
+                            @i
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
+
 
 <div class="modal fade" id="recurringTypeModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -165,34 +176,56 @@
         let savedItemId;
 
         $(document).ready(function () {
+            savedItemId = null;
             setSelectedValues();
         });
 
-        function applyFilters() {
+        function setCategoryFilter() {
             const categoryFilter = $("#categoryFilter").val();
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (categoryFilter !== urlParams.get("category")) {
+                urlParams.set("category", encodeURIComponent(categoryFilter));
+                window.location.search = urlParams.toString();
+            }
+        }
+        
+        function setPlaceFilter() {
             const placeFilter = $("#placeFilter").val();
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (placeFilter !== urlParams.get("place")) {
+                urlParams.set("place", encodeURIComponent(placeFilter));
+                window.location.search = urlParams.toString();
+            }
+        }
+        
+        function setTimeFilter() {
             const timeFilter = $("#timeFilter").val();
+            const urlParams = new URLSearchParams(window.location.search);
 
-            const queryString = new URLSearchParams();
-
-            if (categoryFilter) {
-                queryString.set("category", encodeURIComponent(categoryFilter));
+            if (timeFilter !== urlParams.get("time")) {
+                urlParams.set("time", encodeURIComponent(timeFilter));
+                window.location.search = urlParams.toString();
             }
+        }
 
-            if (placeFilter) {
-                queryString.set("place", encodeURIComponent(placeFilter));
+        function setPage(page) {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (urlParams.get("page") !== page) {
+                urlParams.set("page", page)
+                window.location.search = urlParams.toString();
             }
-
-            if (timeFilter) {
-                queryString.set("time", timeFilter);
-            }
-
-            window.location.search = queryString.toString();
         }
 
         function setSelectedValues() {
-            savedItemId = null;
             const urlParams = new URLSearchParams(window.location.search);
+
+            if (!urlParams.get("page") || +urlParams.get("page") > @ViewBag.TotalPages) {
+                urlParams.set("page", "1");
+                window.location.search = urlParams.toString();
+            }
 
             $("#categoryFilter").val(urlParams.get("category"));
             $("#placeFilter").val(urlParams.get("place"));
