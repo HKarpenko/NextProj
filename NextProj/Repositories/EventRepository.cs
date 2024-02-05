@@ -36,6 +36,15 @@ namespace NextProj.Repositories
             }
         }
 
+        public void DeleteEventDayRecurrence(long dayRecurrenceId)
+        {
+            var dayRecurrence = _context.DayRecurrences.FirstOrDefault(rd => rd.Id == dayRecurrenceId);
+            if (dayRecurrence != null)
+            {
+                _context.DayRecurrences.Remove(dayRecurrence);
+            }
+        }
+
         public IEnumerable<Event> GetAllEvents()
         {
             var events = _context.Events
@@ -71,6 +80,9 @@ namespace NextProj.Repositories
                     .ThenInclude(e => e.Category)
                 .Include(eo => eo.Event)
                     .ThenInclude(e => e.Place)
+                .Include(eo => eo.Event)
+                    .ThenInclude(e => e.DayRecurrences)
+                        .ThenInclude(dr => dr.DayPositions)
                 .FirstOrDefault(e => e.Id == occurenceId);
 
             return eventOccurrence;

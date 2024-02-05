@@ -11,5 +11,7 @@ namespace NextProj.Services
         void DeleteEventOccurrences(long eventId, bool isSeries);
         int GetEventPagesCount(IQueryCollection query);
         IEnumerable<EventViewModel> GetEventsPage(IQueryCollection query);
+        List<DayOptionViewModel> GetWeeklyRecurrenceOptions();
+        List<DayOptionViewModel> GetMonthlyRecurrenceOptions();
     }
 }

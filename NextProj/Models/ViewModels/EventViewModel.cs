@@ -16,6 +16,7 @@ namespace NextProj.Models.ViewModels
         public DateTime Time { get; set; }
         public RecurringType? RecurringType { get; set; }
         public DateTime? RecurringUntil { get; set; }
+        public List<RecurrenceDayViewModel> RecurrenceDays { get; set; }
     }
 
     public class SaveEventViewModel : EventViewModel

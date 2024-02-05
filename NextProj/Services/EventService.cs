@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using NextProj.Models.Entities;
+﻿using NextProj.Models.Entities;
 using NextProj.Models.Enums;
 using NextProj.Models.ViewModels;
 using NextProj.Repositories;
@@ -11,6 +10,7 @@ namespace NextProj.Services
         private readonly IEventRepository _eventRepository;
 
         private const int pageSize = 10;
+        private const int amountOfDaysInWeek = 7;
 
         public EventService(IEventRepository eventRepository)
         {
@@ -56,7 +56,14 @@ namespace NextProj.Services
                 AdditionalInfo = eventOccurrence.Event.AdditionalInfo,
                 Time = eventOccurrence.Time,
                 RecurringType = eventOccurrence.Event.RecurringType,
-                RecurringUntil = eventOccurrence.Event.RecurringUntil
+                RecurringUntil = eventOccurrence.Event.RecurringUntil,
+                RecurrenceDays = eventOccurrence.Event.DayRecurrences.Select(dr => 
+                    new RecurrenceDayViewModel 
+                    {
+                        Day = dr.Day,
+                        DayPositions = dr.DayPositions.Count == 0 ? null : dr.DayPositions.Select(dp => dp.DayPosition).ToList()
+                    }
+                ).ToList()
             };
         }
         public void AddEvent(EventViewModel eventViewModel)
@@ -73,8 +80,8 @@ namespace NextProj.Services
         {
             if(isSeries)
             {
-                var occurrence = _eventRepository.GetEventOccurrenceById(occurrenceId);
-                _eventRepository.DeleteEvent(occurrence.EventId);
+                var eventModel = _eventRepository.GetEventByOccurrenceId(occurrenceId);
+                _eventRepository.DeleteEvent(eventModel.Id);
             }
             else
             {
@@ -113,15 +120,10 @@ namespace NextProj.Services
                 else
                 {
                     var generatedOccurrences = GenerateOccurrences(eventViewModel);
-                    if (eventModel.RecurringType == null)
-                    {
-                        generatedOccurrences = eventModel.Occurrences.Concat(generatedOccurrences.Skip(1)).ToList();
-                    }
-                    else
-                    {
-                        eventModel.Occurrences.ToList().ForEach(oc => _eventRepository.DeleteEventOccurrence(oc.Id));
-                    }
+
+                    eventModel.Occurrences.ToList().ForEach(oc => _eventRepository.DeleteEventOccurrence(oc.Id));
                     eventModel.Occurrences = generatedOccurrences;
+
                     UpdateEvent(eventViewModel, eventModel);
                 }
             }
@@ -132,14 +134,23 @@ namespace NextProj.Services
 
         private void UpdateEvent(EventViewModel eventViewModel, Event eventModel)
         {
+            eventModel.DayRecurrences.ToList().ForEach(dr => _eventRepository.DeleteEventDayRecurrence(dr.Id));
+
             eventModel.Name = eventViewModel.Name;
             eventModel.Images = eventViewModel.Images;
             eventModel.Description = eventViewModel.Description;
             eventModel.CategoryId = eventViewModel.CategoryId;
             eventModel.PlaceId = eventViewModel.PlaceId;
             eventModel.RecurringType = eventViewModel.RecurringType;
-            eventModel.RecurringUntil = eventModel.RecurringUntil;
+            eventModel.RecurringUntil = eventViewModel.RecurringUntil;
             eventModel.AdditionalInfo = eventViewModel.AdditionalInfo;
+            eventModel.DayRecurrences = eventViewModel.RecurrenceDays.Select(rd =>
+                new EventDayRecurrence
+                {
+                    Day = rd.Day,
+                    DayPositions = rd.DayPositions != null ? rd.DayPositions.Select(dp => new EventDayRecurrence2DayPosition { DayPosition = dp }).ToList()
+                        : new List<EventDayRecurrence2DayPosition>()
+                }).ToList();
         }
 
         private Event CreateNewEvent(EventViewModel eventViewModel, List<EventOccurrence> occurrences)
@@ -154,31 +165,104 @@ namespace NextProj.Services
                 PlaceId = eventViewModel.PlaceId,
                 RecurringType = eventViewModel.RecurringType,
                 RecurringUntil = eventViewModel.RecurringUntil,
-                Occurrences = occurrences
+                Occurrences = occurrences,
+                DayRecurrences = eventViewModel.RecurrenceDays.Select(rd => 
+                    new EventDayRecurrence 
+                    { 
+                        Day = rd.Day,
+                        DayPositions = rd.DayPositions != null ? rd.DayPositions.Select(dp => new EventDayRecurrence2DayPosition { DayPosition = dp }).ToList()
+                            : new List<EventDayRecurrence2DayPosition>()
+                    }).ToList()
             };
         }
 
         private List<EventOccurrence> GenerateOccurrences(EventViewModel viewModel)
         {
             var resultOccurrences = new List<EventOccurrence>();
-            var currentTime = viewModel.Time;
+            var currentPeriodStart = GetCurrentPeriodStart(viewModel.Time, (RecurringType)viewModel.RecurringType);
+            var currentTimeOffset = viewModel.Time - currentPeriodStart;
             var endTime = viewModel.RecurringUntil;
 
-            while (currentTime <= endTime)
+            while (currentPeriodStart <= endTime)
             {
-                resultOccurrences.Add(new EventOccurrence() { Time = currentTime });
+                var currentOccurrences = viewModel.RecurrenceDays.Count == 0 ? 
+                    new List<EventOccurrence> { new EventOccurrence { Time = currentPeriodStart + currentTimeOffset } }
+                    : GetCurrentTimeOccurrences(currentPeriodStart, viewModel);
+                resultOccurrences = resultOccurrences.Concat(currentOccurrences).ToList();
 
-                currentTime += viewModel.RecurringType switch
+                currentPeriodStart += viewModel.RecurringType switch
                 {
                     RecurringType.Daily => TimeSpan.FromDays(1),
                     RecurringType.Weekly => TimeSpan.FromDays(7),
                     RecurringType.Biweekly => TimeSpan.FromDays(14),
-                    RecurringType.Monthly => (currentTime.AddMonths(1) - currentTime),
+                    RecurringType.Monthly => (currentPeriodStart.AddMonths(1) - currentPeriodStart),
                     _ => throw new ArgumentException("Invalid recurring type")
                 };
             }
 
-            return resultOccurrences;
+            return resultOccurrences.DistinctBy(oc => oc.Time).ToList();
+        }
+
+        private DateTime GetCurrentPeriodStart(DateTime currentDate, RecurringType recurringType)
+        {
+            return recurringType switch
+            {
+                RecurringType.Weekly => currentDate.AddDays(-(int)currentDate.DayOfWeek + 1),
+                RecurringType.Biweekly => currentDate.AddDays(-(int)currentDate.DayOfWeek + 1),
+                RecurringType.Monthly => currentDate.AddDays(-currentDate.Day + 1),
+                _ => currentDate
+            };
+        }
+
+        private List<EventOccurrence> GetCurrentTimeOccurrences(DateTime periodStart, EventViewModel viewModel)
+        {
+            var resultOccurrences = new List<EventOccurrence>();
+            int daysInMonth = DateTime.DaysInMonth(periodStart.Year, periodStart.Month);
+
+            foreach (var recurrenceDay in viewModel.RecurrenceDays)
+            {
+                if (recurrenceDay.DayPositions != null)
+                {
+                    if (recurrenceDay.DayPositions.Count == 0)
+                    {
+                        recurrenceDay.DayPositions.Add(DayPosition.First);
+                    }
+
+                    var firstDayOfWeekOccurrence = GetFirstDayOfWeekOccurrence(periodStart, (DayOfWeek)recurrenceDay.GetDayOfWeek());
+                    foreach (var dayPosition in recurrenceDay.DayPositions)
+                    {
+                        var occurrenceDayOfMonth = firstDayOfWeekOccurrence.Day + ((int)dayPosition - 1) * amountOfDaysInWeek;
+                        if (occurrenceDayOfMonth <= daysInMonth)
+                        {
+                            resultOccurrences.Add(new EventOccurrence { Time = periodStart.AddDays(occurrenceDayOfMonth - 1) });
+                        }
+                    }
+                }
+                else
+                {
+                    int amountOfDaysOffset = 0;
+                    if (viewModel.RecurringType == RecurringType.Weekly || viewModel.RecurringType == RecurringType.Biweekly)
+                    {
+                        amountOfDaysOffset = (int)recurrenceDay.GetDayOfWeek();
+                    }
+                    else if (recurrenceDay.Day < (int)DayOfRange.LastDayOfMonth)
+                    {
+                        amountOfDaysOffset = recurrenceDay.Day;
+                    }
+                    else if (recurrenceDay.Day == (int)DayOfRange.LastDayOfMonth)
+                    {
+                        amountOfDaysOffset = daysInMonth;
+                    }
+                    resultOccurrences.Add(new EventOccurrence { Time = periodStart.AddDays(amountOfDaysOffset - 1) });
+                }
+            }
+            return resultOccurrences.Where(oc => oc.Time >= viewModel.Time && oc.Time <= viewModel.RecurringUntil).ToList();
+        }
+
+        private DateTime GetFirstDayOfWeekOccurrence(DateTime firstDayOfMonth, DayOfWeek targetDayOfWeek)
+        {
+            int daysOffset = targetDayOfWeek - firstDayOfMonth.DayOfWeek;
+            return firstDayOfMonth.AddDays(daysOffset < 0 ? daysOffset + amountOfDaysInWeek : daysOffset);
         }
 
         private IEnumerable<EventViewModel> GetFilteredEvents(IQueryCollection query)
@@ -209,6 +293,50 @@ namespace NextProj.Services
         {
             var eventsCount = GetFilteredEvents(query).Count();
             return (int)Math.Ceiling(eventsCount / (double)pageSize);
+        }
+
+        public List<DayOptionViewModel> GetWeeklyRecurrenceOptions()
+        {
+            List<DayOptionViewModel> dayOfRangeOptions = new List<DayOptionViewModel>();
+
+            foreach (DayOfRange day in Enum.GetValues(typeof(DayOfRange)))
+            {
+                dayOfRangeOptions.Add(new DayOptionViewModel() { Name = day.ToString(), Value = (int)day });
+            }
+            return dayOfRangeOptions.Skip(1).ToList();
+        }
+        
+        public List<DayOptionViewModel> GetMonthlyRecurrenceOptions()
+        {
+            const int firstDayOfMonth = 1;
+            List<DayOptionViewModel> monthlyOptions = new List<DayOptionViewModel>();
+
+            //Add days of month
+            for(int i = firstDayOfMonth; i < (int)DayOfRange.LastDayOfMonth; i++)
+            {
+                monthlyOptions.Add(new DayOptionViewModel() { Name = i.ToString(), Value = i });
+            }
+
+            //Add days of week with positions + last day of month option
+            foreach (DayOfRange day in Enum.GetValues(typeof(DayOfRange)))
+            {
+                DayOptionViewModel dayOption = new DayOptionViewModel() { Name = $"{day}s", Value = (int)day };
+                if (day == DayOfRange.LastDayOfMonth)
+                {
+                    dayOption.Name = "Last Day";
+                }
+                else
+                {
+                    dayOption.DayPositions = new List<DayOptionViewModel>();
+                    foreach (DayPosition position in Enum.GetValues(typeof(DayPosition)))
+                    {
+                        dayOption.DayPositions.Add(new DayOptionViewModel() { Name = position.ToString(), Value = (int)position });
+                    }
+                }
+
+                monthlyOptions.Add(dayOption);
+            }
+            return monthlyOptions;
         }
     }
 }

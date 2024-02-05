@@ -15,6 +15,7 @@ namespace NextProj.Models.Entities
         public RecurringType? RecurringType { get; set; }
         public DateTime? RecurringUntil { get; set; }
         public string AdditionalInfo { get; set; }
+        public virtual IEnumerable<EventDayRecurrence> DayRecurrences { get; set; }
         public virtual IEnumerable<EventOccurrence> Occurrences { get; set; }
     }
 }

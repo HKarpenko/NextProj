@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using NextProj.Models.ViewModels;
 using NextProj.Services;
+using System.Text.Json;
 
 namespace Task0.Controllers
 {
@@ -46,12 +47,13 @@ namespace Task0.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(EventViewModel viewModel)
+        public IActionResult Create([FromBody] EventViewModel viewModel)
         {
             if (ModelState.IsValid && CheckEventModelValidity(viewModel))
             {
                 _eventService.AddEvent(viewModel);
-                return RedirectToAction("EventsList");
+
+                return Json(new { redirectTo = Url.Action("EventsList") });
             }
 
             return View();
@@ -98,6 +100,8 @@ namespace Task0.Controllers
             var places = _placeService.GetAllPlaces();
             var categories = _categoryService.GetAllCategories();
 
+            ViewData["weeklyOptions"] = _eventService.GetWeeklyRecurrenceOptions();
+            ViewData["monthlyOptions"] = _eventService.GetMonthlyRecurrenceOptions();
             ViewData["Places"] = new SelectList(places, "Id", "DisplayName");
             ViewData["Categories"] = new SelectList(categories, "Id", "Name");
         }

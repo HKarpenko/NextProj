@@ -14,6 +14,8 @@ namespace NextProj.Data
         public DbSet<EventOccurrence> EventsOccurrences { get; set; }
         public DbSet<Place> Places { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<EventDayRecurrence> DayRecurrences { get; set; }
+        public DbSet<EventDayRecurrence2DayPosition> DayRecurrences2DayPositions { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

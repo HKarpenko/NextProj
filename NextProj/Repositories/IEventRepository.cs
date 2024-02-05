@@ -12,5 +12,6 @@ namespace NextProj.Repositories
         void SaveEvent(Event eventModel);
         void DeleteEvent(long eventId);
         void DeleteEventOccurrence(long occurrenceId);
+        void DeleteEventDayRecurrence(long dayRecurrenceId);
     }
 }
