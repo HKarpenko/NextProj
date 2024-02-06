@@ -185,7 +185,7 @@
             const urlParams = new URLSearchParams(window.location.search);
 
             if (categoryFilter !== urlParams.get("category")) {
-                urlParams.set("category", encodeURIComponent(categoryFilter));
+                urlParams.set("category", categoryFilter);
                 window.location.search = urlParams.toString();
             }
         }
@@ -195,7 +195,7 @@
             const urlParams = new URLSearchParams(window.location.search);
 
             if (placeFilter !== urlParams.get("place")) {
-                urlParams.set("place", encodeURIComponent(placeFilter));
+                urlParams.set("place", placeFilter);
                 window.location.search = urlParams.toString();
             }
         }
@@ -205,7 +205,7 @@
             const urlParams = new URLSearchParams(window.location.search);
 
             if (timeFilter !== urlParams.get("time")) {
-                urlParams.set("time", encodeURIComponent(timeFilter));
+                urlParams.set("time", timeFilter);
                 window.location.search = urlParams.toString();
             }
         }
@@ -223,10 +223,11 @@
             const urlParams = new URLSearchParams(window.location.search);
 
             if (!urlParams.get("page") || +urlParams.get("page") > @ViewBag.TotalPages) {
-                urlParams.set("page", "1");
+                urlParams.set("page", urlParams.get("page") ? '@ViewBag.TotalPages' : "1");
                 window.location.search = urlParams.toString();
             }
 
+            console.log("Time param: " + urlParams.get("time"));
             $("#categoryFilter").val(urlParams.get("category"));
             $("#placeFilter").val(urlParams.get("place"));
             $("#timeFilter").val(urlParams.get("time"));

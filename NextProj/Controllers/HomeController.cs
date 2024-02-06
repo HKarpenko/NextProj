@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using NextProj.Models.ViewModels;
+using Domain.Models.ViewModels;
 
 namespace NextProj.Controllers
 {

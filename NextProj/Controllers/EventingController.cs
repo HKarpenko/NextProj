@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using NextProj.Models.ViewModels;
-using NextProj.Services;
-using System.Text.Json;
+using Domain.Models.ViewModels;
+using Application.Services;
 
 namespace Task0.Controllers
 {

@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using NextProj.Helpers;
-using NextProj.Data;
-using NextProj.Repositories;
-using NextProj.Services;
+using Infrastructure.Helpers;
+using Infrastructure.Data;
+using Infrastructure.Repositories;
+using Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
