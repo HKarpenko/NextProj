@@ -25,7 +25,7 @@ namespace Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("NextProj.Models.Entities.Event", b =>
+            modelBuilder.Entity("Domain.Models.Entities.Event", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()

@@ -25,7 +25,7 @@ namespace Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("NextProj.Models.Entities.Category", b =>
+            modelBuilder.Entity("Domain.Models.Entities.Category", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -42,7 +42,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.Event", b =>
+            modelBuilder.Entity("Domain.Models.Entities.Event", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -84,7 +84,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("Events");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.EventOccurrence", b =>
+            modelBuilder.Entity("Domain.Models.Entities.EventOccurrence", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -105,7 +105,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("EventsOccurrences");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.Place", b =>
+            modelBuilder.Entity("Domain.Models.Entities.Place", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -134,13 +134,13 @@ namespace Infrastructure.Migrations
                     b.ToTable("Places");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.Event", b =>
+            modelBuilder.Entity("Domain.Models.Entities.Event", b =>
                 {
-                    b.HasOne("NextProj.Models.Entities.Category", "Category")
+                    b.HasOne("Domain.Models.Entities.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId");
 
-                    b.HasOne("NextProj.Models.Entities.Place", "Place")
+                    b.HasOne("Domain.Models.Entities.Place", "Place")
                         .WithMany()
                         .HasForeignKey("PlaceId");
 
@@ -149,9 +149,9 @@ namespace Infrastructure.Migrations
                     b.Navigation("Place");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.EventOccurrence", b =>
+            modelBuilder.Entity("Domain.Models.Entities.EventOccurrence", b =>
                 {
-                    b.HasOne("NextProj.Models.Entities.Event", "Event")
+                    b.HasOne("Domain.Models.Entities.Event", "Event")
                         .WithMany("Occurrences")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -160,7 +160,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("Event");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.Event", b =>
+            modelBuilder.Entity("Domain.Models.Entities.Event", b =>
                 {
                     b.Navigation("Occurrences");
                 });

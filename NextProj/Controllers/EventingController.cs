@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Domain.Models.ViewModels;
 using Application.Services;
 
-namespace Task0.Controllers
+namespace Presentation.Controllers
 {
     public class EventingController : Controller
     {

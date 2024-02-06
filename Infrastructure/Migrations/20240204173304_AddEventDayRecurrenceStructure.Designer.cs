@@ -28,7 +28,7 @@ namespace Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("NextProj.Models.Entities.Category", b =>
+            modelBuilder.Entity("Domain.Models.Entities.Category", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -45,7 +45,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.Event", b =>
+            modelBuilder.Entity("Domain.Models.Entities.Event", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -90,7 +90,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("Events");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.EventDayRecurrence", b =>
+            modelBuilder.Entity("Domain.Models.Entities.EventDayRecurrence", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -111,7 +111,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("DayRecurrences");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.EventDayRecurrence2DayPosition", b =>
+            modelBuilder.Entity("Domain.Models.Entities.EventDayRecurrence2DayPosition", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -132,7 +132,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("DayRecurrences2DayPositions");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.EventOccurrence", b =>
+            modelBuilder.Entity("Domain.Models.Entities.EventOccurrence", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -153,7 +153,7 @@ namespace Infrastructure.Migrations
                     b.ToTable("EventsOccurrences");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.Place", b =>
+            modelBuilder.Entity("Domain.Models.Entities.Place", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -182,13 +182,13 @@ namespace Infrastructure.Migrations
                     b.ToTable("Places");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.Event", b =>
+            modelBuilder.Entity("Domain.Models.Entities.Event", b =>
                 {
-                    b.HasOne("NextProj.Models.Entities.Category", "Category")
+                    b.HasOne("Domain.Models.Entities.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId");
 
-                    b.HasOne("NextProj.Models.Entities.Place", "Place")
+                    b.HasOne("Domain.Models.Entities.Place", "Place")
                         .WithMany()
                         .HasForeignKey("PlaceId");
 
@@ -197,9 +197,9 @@ namespace Infrastructure.Migrations
                     b.Navigation("Place");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.EventDayRecurrence", b =>
+            modelBuilder.Entity("Domain.Models.Entities.EventDayRecurrence", b =>
                 {
-                    b.HasOne("NextProj.Models.Entities.Event", "Event")
+                    b.HasOne("Domain.Models.Entities.Event", "Event")
                         .WithMany("DayRecurrences")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -208,9 +208,9 @@ namespace Infrastructure.Migrations
                     b.Navigation("Event");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.EventDayRecurrence2DayPosition", b =>
+            modelBuilder.Entity("Domain.Models.Entities.EventDayRecurrence2DayPosition", b =>
                 {
-                    b.HasOne("NextProj.Models.Entities.EventDayRecurrence", "EventDayRecurrence")
+                    b.HasOne("Domain.Models.Entities.EventDayRecurrence", "EventDayRecurrence")
                         .WithMany("DayPositions")
                         .HasForeignKey("EventDayRecurrenceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -219,9 +219,9 @@ namespace Infrastructure.Migrations
                     b.Navigation("EventDayRecurrence");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.EventOccurrence", b =>
+            modelBuilder.Entity("Domain.Models.Entities.EventOccurrence", b =>
                 {
-                    b.HasOne("NextProj.Models.Entities.Event", "Event")
+                    b.HasOne("Domain.Models.Entities.Event", "Event")
                         .WithMany("Occurrences")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -230,14 +230,14 @@ namespace Infrastructure.Migrations
                     b.Navigation("Event");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.Event", b =>
+            modelBuilder.Entity("Domain.Models.Entities.Event", b =>
                 {
                     b.Navigation("DayRecurrences");
 
                     b.Navigation("Occurrences");
                 });
 
-            modelBuilder.Entity("NextProj.Models.Entities.EventDayRecurrence", b =>
+            modelBuilder.Entity("Domain.Models.Entities.EventDayRecurrence", b =>
                 {
                     b.Navigation("DayPositions");
                 });
