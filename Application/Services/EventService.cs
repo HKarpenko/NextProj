@@ -198,6 +198,7 @@ namespace Application.Services
                     RecurringType.Weekly => TimeSpan.FromDays(7),
                     RecurringType.Biweekly => TimeSpan.FromDays(14),
                     RecurringType.Monthly => (currentPeriodStart.AddMonths(1) - currentPeriodStart),
+                    RecurringType.Yearly => (currentPeriodStart.AddYears(1) - currentPeriodStart),
                     _ => throw new ArgumentException("Invalid recurring type")
                 };
             }
