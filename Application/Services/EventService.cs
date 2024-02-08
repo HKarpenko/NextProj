@@ -203,7 +203,9 @@ namespace Application.Services
                 };
             }
 
-            return resultOccurrences.DistinctBy(oc => oc.Time).ToList();
+            return resultOccurrences
+                .Where(oc => oc.Time >= viewModel.Time && oc.Time <= viewModel.RecurringUntil)
+                .DistinctBy(oc => oc.Time).ToList();
         }
 
         private DateTime GetCurrentPeriodStart(DateTime currentDate, RecurringType recurringType)
@@ -259,7 +261,7 @@ namespace Application.Services
                     resultOccurrences.Add(new EventOccurrence { Time = periodStart.AddDays(amountOfDaysOffset - 1) });
                 }
             }
-            return resultOccurrences.Where(oc => oc.Time >= viewModel.Time && oc.Time <= viewModel.RecurringUntil).ToList();
+            return resultOccurrences.ToList();
         }
 
         private DateTime GetFirstDayOfWeekOccurrence(DateTime firstDayOfMonth, DayOfWeek targetDayOfWeek)
