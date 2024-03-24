@@ -9,5 +9,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task<long> AddAndSaveNewSubscription(EventSubscription subscription);
         Task<long> UpdateAndSaveSubscription(EventSubscription subscription);
         Task DeleteSubscription(long subscriptionId);
+        Task SaveChangesAsync();
     }
 }

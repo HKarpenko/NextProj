@@ -32,24 +32,24 @@ namespace Application.Services
             }).ToList();
         }
 
-        public void AddSubscription(SaveEventSubscriptionViewModel saveModel)
+        public async Task AddSubscription(SaveEventSubscriptionViewModel saveModel)
         {
             var eventModel = _eventRepository.GetEventByOccurrenceId(saveModel.OccurrenceId);
             var eventOccurrence = eventModel.Occurrences.First(oc => oc.Id == saveModel.OccurrenceId);
 
             if (saveModel.IsSeries)
             {
-                eventModel.Occurrences.ToList().ForEach(oc =>
+                foreach(var oc in eventModel.Occurrences)
                 {
                     var newSubscription = CreateEventSubscription(saveModel, eventOccurrence.Time);
                     newSubscription.EventOccurrenceId = oc.Id;
-                    tryAddSubscriptionIfNotExists(oc, newSubscription);
-                });
+                    await tryAddSubscriptionIfNotExists(oc, newSubscription);
+                }
             }
             else
             {
                 var newSubscription = CreateEventSubscription(saveModel, eventOccurrence.Time);
-                tryAddSubscriptionIfNotExists(eventOccurrence, newSubscription);
+                await tryAddSubscriptionIfNotExists(eventOccurrence, newSubscription);
             }
         }
 
@@ -73,7 +73,7 @@ namespace Application.Services
             subscription.Message = saveModel.Message;
         }
 
-        private async void tryAddSubscriptionIfNotExists(EventOccurrence eventOccurrence, EventSubscription newSubscription)
+        private async Task tryAddSubscriptionIfNotExists(EventOccurrence eventOccurrence, EventSubscription newSubscription)
         {
             var subscriptions = eventOccurrence.Subscriptions.ToList();
             if (!subscriptions.Any(ocs => CheckSubscriptionsEqual(ocs, newSubscription)))
@@ -84,6 +84,7 @@ namespace Application.Services
                 if (!result)
                 {
                     await _subscriptionRepository.DeleteSubscription(newSubscription.Id);
+                    await _subscriptionRepository.SaveChangesAsync();
                 }
             }
         }
@@ -108,7 +109,7 @@ namespace Application.Services
             };
         }
 
-        public async void UpdateSubscription(SaveEventSubscriptionViewModel saveModel)
+        public async Task UpdateSubscription(SaveEventSubscriptionViewModel saveModel)
         {
             var subscription = _subscriptionRepository.GetSubscriptionById(saveModel.Id);
 
@@ -119,9 +120,8 @@ namespace Application.Services
                     var originalSubsciption = s.GetCopy();
 
                     SetFieldsFromViewToSubscription(saveModel, s, subscription.EventOccurrence.Time);
-                    _subscriptionRepository.SaveChanges();
-
-                    tryUpdateNotification(s, originalSubsciption);
+                    await _subscriptionRepository.UpdateAndSaveSubscription(subscription);
+                    await tryUpdateNotification(s, originalSubsciption);
                 });
             }
             else
@@ -129,12 +129,12 @@ namespace Application.Services
                 var originalSubsciption = subscription.GetCopy();
 
                 SetFieldsFromViewToSubscription(saveModel, subscription, subscription.EventOccurrence.Time);
-                _subscriptionRepository.SaveChanges();
-                tryUpdateNotification(subscription, originalSubsciption);
+                await _subscriptionRepository.UpdateAndSaveSubscription(subscription);
+                await tryUpdateNotification(subscription, originalSubsciption);
             }
         }
 
-        private async void tryUpdateNotification(EventSubscription updatedSubscription, EventSubscription originalSubsciption)
+        private async Task tryUpdateNotification(EventSubscription updatedSubscription, EventSubscription originalSubsciption)
         {
             var occurrence = _eventRepository.GetEventOccurrenceById(updatedSubscription.EventOccurrenceId);
             var notificationDto = CreateNotificationDto(occurrence, updatedSubscription);
@@ -167,9 +167,9 @@ namespace Application.Services
             {
                 await _subscriptionRepository.DeleteSubscription(subscriptionId);
                 var result = await _notificationService.DeleteNotification(subscriptionId);
-                if (!result)
+                if (result)
                 {
-                    _subscriptionRepository.SaveChanges();
+                    await _subscriptionRepository.SaveChangesAsync();
                 }
             }
             return eventOccurrenceId;
