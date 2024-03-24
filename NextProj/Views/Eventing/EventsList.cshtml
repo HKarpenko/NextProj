@@ -1,84 +1,258 @@
-﻿@model IEnumerable<Event>
+﻿@model IEnumerable<EventViewModel>
 @{
     ViewData["Title"] = "List";
 }
 
-<div class="row">
-    <div class="col-10">
-        <h1>Events</h1>
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/Eventing/EventsList.css" />
+}
+
+<div class="events-list">
+    <div class="row">
+        <div class="col-10">
+            <h1>Events</h1>
+        </div>
+        <div class="events-list-buttons">
+            <a asp-action="Create" class="btn btn-success btn-md my-2">
+                Add Event +
+            </a>
+            <a asp-action="FullCalendar" class="btn btn-info btn-md my-2">
+                View in Calendar
+            </a>
+        </div>
     </div>
-    <span>
-        <a asp-action="Create" class="btn btn-success btn-md">
-            Add Event +
-        </a>
-    </span>
+
+    <form method="get">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label for="categoryFilter">Filter by Category:</label>
+                <select id="categoryFilter" role="button" name="category" class="form-control" onchange="setCategoryFilter()">
+                    <option value="">All Categories</option>
+                    @foreach (var category in ViewBag.Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="placeFilter">Filter by Place:</label>
+                <select id="placeFilter" role="button" name="place" class="form-control" onchange="setPlaceFilter()">
+                    <option value="">All Places</option>
+                    @foreach (var place in ViewBag.Places)
+                    {
+                        <option value="@place.Id">@place.DisplayName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="timeFilter">Start Time:</label>
+                <input type="datetime-local" role="button" id="timeFilter" name="time" class="form-control" onchange="setTimeFilter()">
+            </div>
+        </div>
+    </form>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Category)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Description)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Place)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Time)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.AdditionalInfo)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Images)
+                </th>
+                <th>
+                    Actions
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @item.Name
+                    </td>
+                    <td>
+                        @(item.Category == null ? "" : item.Category)
+                    </td>
+                    <td>
+                        @item.Description
+                    </td>
+                    <td>
+                        @(item.Place == null ? "" : item.Place)
+                    </td>
+                    <td>
+                        @item.Time
+                    </td>
+                    <td>
+                        @item.AdditionalInfo
+                    </td>
+                    <td>
+                        @item.Images
+                    </td>
+                    <td>
+                        <div class="events-list-actions">
+                            <a asp-action="Details"
+                               asp-route-id="@item.Id"
+                               data-toggle="tooltip"
+                               title="Details">
+                                <i class="bi bi-info info"></i>
+                            </a>
+                            <a asp-action="Edit"
+                               asp-route-id="@item.Id"
+                               data-toggle="tooltip"
+                               title="Edit">
+                                <i class="bi bi-pencil-fill"></i>
+                            </a>
+                            <a class="delete-event"
+                               data-toggle="tooltip"
+                               title="Delete"
+                               role="button"
+                               onclick="@(item.RecurringType == null ? "confirmDelete(false, '" + item.Id + "')" : "showDeleteConfirmation('" + item.Id + "')")">
+                                <i class="bi bi-trash-fill"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    @for (var i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(Context.Request.Query["page"] == i.ToString() ? "active" : "")">
+                            <a class="page-link" role="button" onclick="setPage('@i')">
+                                @i
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="recurringTypeModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="recurringTypeModalLabel">Select delete type</h5>
+                    <button type="button" class="close" aria-label="Close" onclick="closeModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Do you want to delete series or occurence?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary"
+                            onclick="confirmDelete(true)">
+                        Series
+                    </button>
+                    <button type="button" class="btn btn-primary"
+                            onclick="confirmDelete(false)">
+                        Occurrence
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th style="min-width: 280px">
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Place)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Time)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.AdditionalInfo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Images)
-            </th>
-            <th>
-                Actions
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Category)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Description)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Place)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Time)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.AdditionalInfo)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Images)
-                </td>
-                <td>
-                    <div class="events-list-actions">
-                        <a asp-action="Edit" asp-route-id="@item.Id" data-toggle="tooltip" data-placement="top" title="Edit">
-                            <i class="bi bi-pencil-fill"></i>
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" data-toggle="tooltip" data-placement="top" title="Delete">
-                            <i class="bi bi-trash-fill"></i>
-                        </a>
-                    </div>
-                </td>
-            </tr>
+@section Scripts
+{
+    <script>
+        let savedItemId;
+
+        $(document).ready(function () {
+            savedItemId = null;
+            setSelectedValues();
+        });
+
+        function setCategoryFilter() {
+            const categoryFilter = $("#categoryFilter").val();
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (categoryFilter !== urlParams.get("category")) {
+                urlParams.set("category", categoryFilter);
+                window.location.search = urlParams.toString();
+            }
         }
-    </tbody>
-</table>
+        
+        function setPlaceFilter() {
+            const placeFilter = $("#placeFilter").val();
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (placeFilter !== urlParams.get("place")) {
+                urlParams.set("place", placeFilter);
+                window.location.search = urlParams.toString();
+            }
+        }
+        
+        function setTimeFilter() {
+            const timeFilter = $("#timeFilter").val();
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (timeFilter !== urlParams.get("time")) {
+                urlParams.set("time", timeFilter);
+                window.location.search = urlParams.toString();
+            }
+        }
+
+        function setPage(page) {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (urlParams.get("page") !== page) {
+                urlParams.set("page", page)
+                window.location.search = urlParams.toString();
+            }
+        }
+
+        function setSelectedValues() {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (!urlParams.get("page") || +urlParams.get("page") > @ViewBag.TotalPages) {
+                urlParams.set("page", urlParams.get("page") ? '@ViewBag.TotalPages' : "1");
+                window.location.search = urlParams.toString();
+            }
+
+            $("#categoryFilter").val(urlParams.get("category"));
+            $("#placeFilter").val(urlParams.get("place"));
+            $("#timeFilter").val(urlParams.get("time"));
+        }
+
+        function showDeleteConfirmation(id) {
+            savedItemId = id;
+            $("#recurringTypeModal").modal("show");
+        }
+
+        function closeModal() {
+            $("#recurringTypeModal").modal("hide");
+        }
+
+        function confirmDelete(isSeries, itemId) {
+            const occurrenceId = itemId || savedItemId;
+            window.location.href = `/Eventing/Delete?occurrenceId=${occurrenceId}&isSeries=${isSeries}`;
+        }
+    </script>
+}

@@ -1,21 +1,30 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NextProj.Models.Entities;
-using NextProj.Repositories;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Domain.Models.ViewModels;
+using Application.Interfaces;
 
-namespace Task0.Controllers
+namespace Presentation.Controllers
 {
     public class EventingController : Controller
     {
-        private readonly IEventRepository _eventRepository;
+        private readonly IEventService _eventService;
+        private readonly ICategoryService _categoryService;
+        private readonly IPlaceService _placeService;
 
-        public EventingController(IEventRepository eventRepository) 
+        public EventingController(IEventService eventService, ICategoryService categoryService,
+            IPlaceService placeService) 
         {
-            _eventRepository = eventRepository;
+            _eventService = eventService;
+            _categoryService = categoryService;
+            _placeService = placeService;
         }
 
         public IActionResult EventsList()
         {
-            var events = _eventRepository.GetAllEvents();
+            ViewData["Places"] = _placeService.GetAllPlaces();
+            ViewData["Categories"] = _categoryService.GetAllCategories();
+            ViewData["TotalPages"] = _eventService.GetEventPagesCount(Request.Query);
+            var events = _eventService.GetEventsPage(Request.Query);
 
             return View(events);
         }
@@ -23,36 +32,26 @@ namespace Task0.Controllers
         [HttpGet]
         public IActionResult Details(long id)
         {
-            var eventModel = _eventRepository.GetEventById(id);
+            var eventModel = _eventService.GetEventWithSubscriptionsById(id);
 
             return View(eventModel);
         }
 
-
         [HttpGet]
         public IActionResult Create()
         {
+            FillSelectionLists();
             return View();
         }
 
         [HttpPost]
-        public IActionResult Create(Event eventModel)
+        public IActionResult Create([FromBody] EventViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && CheckEventModelValidity(viewModel))
             {
-                var newEvent = new Event
-                {
-                    Name = eventModel.Name,
-                    AdditionalInfo = eventModel.AdditionalInfo,
-                    Category = eventModel.Category,
-                    Description = eventModel.Description,
-                    Place = eventModel.Place,
-                    Time = eventModel.Time,
-                    Images = eventModel.Images
-                };
-                _eventRepository.AddEvent(newEvent);
+                _eventService.AddEvent(viewModel);
 
-                return RedirectToAction("EventsList");
+                return Json(new { redirectTo = Url.Action("EventsList") });
             }
 
             return View();
@@ -61,39 +60,54 @@ namespace Task0.Controllers
         [HttpGet]
         public IActionResult Edit(long id)
         {
-            var eventModel = _eventRepository.GetEventById(id);
+            var eventModel = _eventService.GetEventById(id);
+            FillSelectionLists();
 
             return View(eventModel);
         }
 
         [HttpPost]
-        public IActionResult Edit(Event eventModel)
+        public IActionResult Edit([FromBody] SaveEventViewModel model)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid && CheckEventModelValidity(model))
             {
-                var currentEvent = _eventRepository.GetEventById(eventModel.Id);
+                _eventService.EditEvent(model);
 
-                currentEvent.Name = eventModel.Name;
-                currentEvent.AdditionalInfo = eventModel.AdditionalInfo;
-                currentEvent.Category = eventModel.Category;
-                currentEvent.Description = eventModel.Description;
-                currentEvent.Place = eventModel.Place;
-                currentEvent.Time = eventModel.Time;
-                currentEvent.Images = eventModel.Images;
-
-                _eventRepository.SaveEvent(currentEvent);
-
-                return RedirectToAction(nameof(EventsList));
+                return Json(new { redirectTo = Url.Action("EventsList") });
             }
 
-            return View(eventModel);
+            return View(model);
         }
 
-        public IActionResult Delete(long id)
+        public IActionResult Delete(long occurrenceId, bool isSeries)
         {
-            _eventRepository.DeleteEvent(id);
+            _eventService.DeleteEventOccurrences(occurrenceId, isSeries);
 
-            return RedirectToAction(nameof(EventsList));
+            return RedirectToAction("EventsList");
+        }
+
+        public IActionResult FullCalendar()
+        {
+            var events = _eventService.GetAllEvents();
+
+            return View(events);
+        }
+
+        private void FillSelectionLists()
+        {
+            var places = _placeService.GetAllPlaces();
+            var categories = _categoryService.GetAllCategories();
+
+            ViewData["weeklyOptions"] = _eventService.GetWeeklyRecurrenceOptions();
+            ViewData["monthlyOptions"] = _eventService.GetMonthlyRecurrenceOptions();
+            ViewData["Places"] = new SelectList(places, "Id", "DisplayName");
+            ViewData["Categories"] = new SelectList(categories, "Id", "Name");
+        }
+
+        private bool CheckEventModelValidity(EventViewModel viewModel)
+        {
+            return (viewModel.RecurringType == null || viewModel.RecurringUntil != null) &&
+                (viewModel.RecurringUntil == null || viewModel.Time < viewModel.RecurringUntil);
         }
     }
 }

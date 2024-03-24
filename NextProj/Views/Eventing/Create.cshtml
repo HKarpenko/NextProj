@@ -1,4 +1,4 @@
-﻿@model Event
+﻿@model EventViewModel
 @{
     ViewData["Title"] = "Create";
 }
@@ -15,38 +15,171 @@
 <div class="row">
     <div class="col-md-2"></div>
     <div class="col-md-6">
-        <form asp-action="Create">
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="Category" class="control-label"></label>
-                <input asp-for="Category" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="Place" class="control-label"></label>
-                <input asp-for="Place" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="Time" class="control-label"></label>
-                <input asp-for="Time" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="AdditionalInfo" class="control-label"></label>
-                <input asp-for="AdditionalInfo" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="Images" class="control-label"></label>
-                <input asp-for="Images" class="form-control" />
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary float-right" />
-            </div>
-        </form>
+        <div class="form-group">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" class="form-control" id="modelName" />
+        </div>
+        <div class="form-group">
+            <label asp-for="CategoryId" class="control-label"></label>
+            <select asp-for="CategoryId" class="form-control" asp-items="@ViewBag.Categories" id="modelCategoryId"></select>
+        </div>
+        <div class="form-group">
+            <label asp-for="PlaceId" class="control-label"></label>
+            <select asp-for="PlaceId" class="form-control" asp-items="@ViewBag.Places" id="modelPlaceId"></select>
+        </div>
+        <div class="form-group">
+            <label asp-for="Time" class="control-label"></label>
+            <input asp-for="Time" class="form-control" id="modelTime" />
+        </div>
+        <div class="form-group">
+            <label asp-for="RecurringType"></label>
+            <select asp-for="RecurringType" class="form-control" id="modelRecurringType">
+                <option value="@null">N/A</option>
+                @foreach (var type in Enum.GetValues(typeof(RecurringType)))
+                {
+                    <option value="@((int)type)">@type</option>
+                }
+            </select>
+        </div>
+        <div class="form-group" id="checkboxTreeGroup" style="display: none;">
+            <div id="checkboxTree"></div>
+        </div>
+        <div class="form-group" id="recurringUntilGroup" style="display: none;">
+            <label asp-for="RecurringUntil" class="control-label"></label>
+            <input asp-for="RecurringUntil" class="form-control" id="recurringUntilInput" />
+        </div>
+        <div class="form-group">
+            <label asp-for="Description" class="control-label"></label>
+            <input asp-for="Description" class="form-control" id="modelDescription" />
+        </div>
+        <div class="form-group">
+            <label asp-for="AdditionalInfo" class="control-label"></label>
+            <input asp-for="AdditionalInfo" class="form-control" id="modelAdditionalInfo" />
+        </div>
+        <div class="form-group">
+            <label asp-for="Images" class="control-label"></label>
+            <input asp-for="Images" class="form-control" id="modelImages" />
+        </div>
+        <div class="form-group">
+            <button class="btn btn-primary float-right" id="saveButton">
+                Save
+            </button>
+        </div>
     </div>
 </div>
+
+@section Scripts
+{
+    <script>
+        let checkboxTree;
+        const weeklyOptions = @Html.Raw(Json.Serialize(ViewData["weeklyOptions"]));
+        const monthlyOptions = @Html.Raw(Json.Serialize(ViewData["monthlyOptions"]));
+
+        $(document).ready(function () {
+            $('#modelRecurringType').change(function () {
+                const selectedType = !!this.value || this.value === 0;
+                updateTreeData(this.value);
+
+                if (!selectedType) {
+                    $('#recurringUntilInput').val(null);
+                }
+                $('#recurringUntilGroup').toggle(selectedType);
+            });
+
+            checkboxTree = $('#checkboxTree').jstree({
+                'plugins': ['wholerow', 'checkbox'],
+                'core': { 'data': [] }
+            }).jstree(true);
+
+            $('#saveButton').click(createEvent);
+        });
+
+        function updateTreeData(value) {
+            if (value == @((int)RecurringType.Weekly) || value == @((int)RecurringType.Biweekly)) {
+                const weeklyOptionsTree = weeklyOptions.map(op => ({ id: op.value, text: op.name, value: op.value, icon: false }));
+                 $('#checkboxTreeGroup').toggle(true);
+
+                setNewTreeData(weeklyOptionsTree);
+            }
+            else if (value == @((int)RecurringType.Monthly)) {
+                const monthlyOptionsTree = monthlyOptions.map(op => {
+                    return op.dayPositions === null ? { id: getNodeId(op.value), text: op.name, value: op.value, icon: false }
+                        : { id: getNodeId(op.value), text: op.name, value: op.value, icon: false,
+                            children: op.dayPositions.map(dp => ({ id: getNodeId(op.value, dp.value), text: dp.name, value: dp.value, icon: false })),
+                        }
+                });
+                $('#checkboxTreeGroup').toggle(true);
+
+                setNewTreeData(monthlyOptionsTree);
+            }
+            else {
+                $('#checkboxTreeGroup').toggle(false);
+            }
+        }
+
+        function getNodeId(dayOfRange, dayPosition) {
+            return dayOfRange.toString() + (dayPosition ? `_${dayPosition}` : '');
+        }
+
+        function setNewTreeData(newData) {
+            checkboxTree.settings.core.data = newData;
+            checkboxTree.refresh();
+        }
+
+        function createEvent() {
+            const selectedNodes = getSelectedNodes();
+
+            const model = {
+                Name: $("#modelName").val(),
+                Images: $("#modelImages").val(),
+                Description: $("#modelDescription").val(),
+                CategoryId: +$("#modelCategoryId").val(),
+                PlaceId: +$("#modelPlaceId").val(),
+                AdditionalInfo: $("#modelAdditionalInfo").val(),
+                Time: $("#modelTime").val(),
+                RecurringType: $("#modelRecurringType").val() ? +$("#modelRecurringType").val() : null,
+                RecurringUntil: $('#recurringUntilInput').val() ? $('#recurringUntilInput').val() : null,
+                RecurrenceDays: selectedNodes
+            };
+
+            $.ajax({
+                url: '/Eventing/Create',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(model),
+                success: function (data) {
+                    if (data.redirectTo) {
+                        window.location.href = data.redirectTo;
+                    }
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
+            });
+        }
+
+        function getSelectedNodes() {
+            const selectedNodes = [];
+            if ($('#modelRecurringType').val() && checkboxTree) {
+                const treeData = checkboxTree.get_selected(true);
+                treeData.forEach(node => {
+                    if (node.parent === "#") {
+                        selectedNodes.push({ Day: node.original.value });
+                    }
+                    else {
+                        const selectedNode = selectedNodes.find(s => s.Day === node.parent);
+                        if (selectedNode) {
+                            selectedNode.DayPositions = selectedNode.DayPositions ? [...selectedNode.DayPositions, node.original.value]
+                                : [node.original.value];
+                        }
+                        else {
+                            selectedNodes.push({ Day: node.parent, DayPositions: [node.original.value] });
+                        }
+                    }
+                });
+            }
+
+            return selectedNodes;
+        }
+    </script>
+}
