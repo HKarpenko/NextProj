@@ -1,6 +1,6 @@
 ﻿using Domain.Models.Entities;
 
-namespace Application.Services
+namespace Application.Interfaces
 {
     public interface IPlaceService
     {

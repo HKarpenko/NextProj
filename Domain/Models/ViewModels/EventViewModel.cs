@@ -23,4 +23,9 @@ namespace Domain.Models.ViewModels
     {
         public bool isSeries {  get; set; }
     }
+
+    public class SubscriptionalEventViewModel : EventViewModel
+    {
+        public List<EventSubscriptionViewModel> EventSubscriptions { get; set; }
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using Domain.Models.Entities;
+using Infrastructure.Repositories.Interfaces;
 using Infrastructure.Data;
 
 namespace Infrastructure.Repositories

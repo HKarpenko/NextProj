@@ -1,5 +1,6 @@
 ﻿using Domain.Models.Entities;
-using Infrastructure.Repositories;
+using Application.Interfaces;
+using Infrastructure.Repositories.Interfaces;
 
 namespace Application.Services
 {

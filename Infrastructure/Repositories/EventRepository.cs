@@ -1,6 +1,7 @@
 ﻿using Domain.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure.Data;
+using Infrastructure.Repositories.Interfaces;
 
 namespace Infrastructure.Repositories
 {
@@ -58,9 +59,10 @@ namespace Infrastructure.Repositories
         public Event GetEventById(long id)
         {
             var eventModel = _context.Events
-                .Include(p => p.Place)
-                .Include(c => c.Category)
-                .Include(o => o.Occurrences)
+                .Include(e => e.Place)
+                .Include(e => e.Category)
+                .Include(e => e.Occurrences)
+                    .ThenInclude(o => o.Subscriptions)
                 .FirstOrDefault(e => e.Id == id);
 
             return eventModel;

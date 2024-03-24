@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Domain.Models.ViewModels;
-using Application.Services;
+using Application.Interfaces;
 
 namespace Presentation.Controllers
 {
@@ -32,11 +32,10 @@ namespace Presentation.Controllers
         [HttpGet]
         public IActionResult Details(long id)
         {
-            var eventModel = _eventService.GetEventById(id);
+            var eventModel = _eventService.GetEventWithSubscriptionsById(id);
 
             return View(eventModel);
         }
-
 
         [HttpGet]
         public IActionResult Create()

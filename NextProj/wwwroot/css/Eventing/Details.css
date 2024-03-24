@@ -1,0 +1,45 @@
+.event-details {
+    .add-subscription-button {
+        margin-left: 10px;
+    }
+
+    .event-subscriptions-header {
+        display: flex;
+        width: 100%;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .subscription-container {
+        padding: 5px;
+        background-color: #d7d7d7;
+        color: #000;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-width: 320px;
+        width: fit-content;
+   
+        .subscription-actions {
+            margin-left: 15px;
+            display: flex;
+            justify-content: space-between;
+            width: 40px;
+            line-height: 20px;
+        }
+
+        .subscription-label {
+            max-width: 240px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+}
+
+.modal {
+    .subscription-modal-actions {
+        width: 15vw;
+    }
+}

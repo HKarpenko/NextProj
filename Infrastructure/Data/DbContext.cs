@@ -16,6 +16,7 @@ namespace Infrastructure.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<EventDayRecurrence> DayRecurrences { get; set; }
         public DbSet<EventDayRecurrence2DayPosition> DayRecurrences2DayPositions { get; set; }
+        public DbSet<EventSubscription> EventSubscriptions { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

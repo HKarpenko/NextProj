@@ -2,8 +2,9 @@
 using Domain.Models.Enums;
 using Microsoft.AspNetCore.Http;
 using Domain.Models.ViewModels;
-using Infrastructure.Repositories;
 using System.Web;
+using Application.Interfaces;
+using Infrastructure.Repositories.Interfaces;
 
 namespace Application.Services
 {
@@ -11,12 +12,15 @@ namespace Application.Services
     {
         private readonly IEventRepository _eventRepository;
 
+        private readonly ISubscriptionService _subscriptionService;
+
         private const int pageSize = 10;
         private const int amountOfDaysInWeek = 7;
 
-        public EventService(IEventRepository eventRepository)
+        public EventService(IEventRepository eventRepository, ISubscriptionService subscriptionService)
         {
             _eventRepository = eventRepository;
+            _subscriptionService = subscriptionService;
         }
 
         public IEnumerable<EventViewModel> GetAllEvents()
@@ -68,6 +72,28 @@ namespace Application.Services
                 ).ToList()
             };
         }
+
+        public SubscriptionalEventViewModel GetEventWithSubscriptionsById(long id)
+        {
+            var viewModel = GetEventById(id);
+            return new SubscriptionalEventViewModel
+            {
+                Id = viewModel.Id,
+                Name = viewModel.Name,
+                Images = viewModel.Images,
+                Description = viewModel.Description,
+                CategoryId = viewModel.CategoryId,
+                Category = viewModel.Category,
+                PlaceId = viewModel.PlaceId,
+                Place = viewModel.Place,
+                AdditionalInfo = viewModel.AdditionalInfo,
+                Time = viewModel.Time,
+                RecurringType = viewModel.RecurringType,
+                RecurringUntil = viewModel.RecurringUntil,
+                EventSubscriptions = _subscriptionService.GetSubscriptionsByOccurrenceId(id)
+            };
+        }
+
         public void AddEvent(EventViewModel eventViewModel)
         {
             var occurrences = eventViewModel.RecurringType == null ? 

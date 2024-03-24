@@ -1,6 +1,6 @@
 ﻿using Domain.Models.Entities;
 
-namespace Infrastructure.Repositories
+namespace Infrastructure.Repositories.Interfaces
 {
     public interface IEventRepository : IBaseRepository
     {

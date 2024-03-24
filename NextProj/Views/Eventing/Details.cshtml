@@ -1,0 +1,310 @@
+﻿@model SubscriptionalEventViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/Eventing/Details.css" />
+}
+
+<div class="event-details">
+    <div>
+        <a asp-action="EventsList" data-toggle="tooltip" data-placement="top" title="Back">
+            <i class="bi bi-arrow-left-circle-fill back-action"></i>
+        </a>
+    </div>
+
+    <h1>Event Occurrence Details</h1>
+
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Name
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt class="col-sm-2">
+            Category
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Category)
+        </dd>
+        <dt class="col-sm-2">
+            Place
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Place)
+        </dd>
+        <dt class="col-sm-2">
+            Time
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Time)
+        </dd>
+        @if (Model.RecurringType != null)
+        {
+            <dt class="col-sm-2">
+                Recurring Type
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.RecurringType)
+            </dd>
+            <dt class="col-sm-2">
+                Recurring Until
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.RecurringUntil)
+            </dd>
+        }
+        <dt class="col-sm-2">
+            Description
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+        <dt class="col-sm-2">
+            Additional Info
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AdditionalInfo)
+        </dd>
+        <dt class="col-sm-2">
+            Images
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Images)
+        </dd>
+        <div class="col-sm-2 event-subscriptions-header">
+            <span>Event Subscriptions</span>
+            <a class="add-subscription-button"
+               data-toggle="tooltip"
+               title="Add Subscription"
+               role="button"
+               onclick="showSaveSubscriptionModal()"
+            >
+                <i class="bi bi-plus-circle-fill"></i>
+            </a>
+        </div>
+        @if (Model.EventSubscriptions.Count > 0)
+        {
+            foreach (var subscription in Model.EventSubscriptions)
+            {
+                <div class="subscription-container">
+                    <span class="subscription-label">
+                        @($"{subscription.NotificationTime}: {subscription.Name}")
+                    </span>
+                    <span class="subscription-actions">
+                        <a data-toggle="tooltip"
+                           title="Edit Subscription"
+                           role="button"
+                           class="subscription-actions__edit"
+                           onclick="showSaveSubscriptionModal('@subscription.Id')">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        <a data-toggle="tooltip"
+                           title="Delete Subscription"
+                           role="button"
+                           class="subscription-actions__delete"
+                           onclick="showDeleteSubscriptionModal('@subscription.Id')">
+                            <i class="bi bi-trash-fill"></i>
+                        </a>
+                    </span>
+                </div>
+            }
+        }
+    </dl>
+</div>
+
+<div class="modal fade" id="saveSubscriptionModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="saveSubscriptionModalLabel">Fill in data</h5>
+                <button type="button" class="close" aria-label="Close" onclick="closeSaveSubscriptionModal()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="subscription-form">
+                    <div class="row my-2">
+                        <label for="subscription-name" class="col-3">Name</label>
+                        <input id="subscription-name" class="col-7" type="text" />
+                    </div>
+                    <div class="row my-2">
+                        <label for="subscription-email" class="col-3">Email</label>
+                        <input id="subscription-email" class="col-7" type="email" />
+                    </div>
+                    <div class="row my-2">
+                        <label for="subscription-time" class="col-3">Time</label>
+                        <input id="subscription-time" class="col-3" type="time" />
+                    </div>
+                    <div class="row my-2">
+                        <label for="subscription-message" class="col-3">Message</label>
+                        <input id="subscription-message" class="col-7" type="text" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <div>
+                    Do you want to save subscription for series or occurence?
+                </div>
+                <div class="subscription-modal-actions d-flex justify-content-between">
+                    <button type="button"
+                            class="btn btn-primary"
+                            onclick="saveSubscription(true)"
+                            id="seriesButton"
+                            disabled>
+                        Series
+                    </button>
+                    <button type="button"
+                            class="btn btn-primary"
+                            onclick="saveSubscription(false)"
+                            id="occurrenceButton" 
+                            disabled>
+                        Occurrence
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteSubscriptionModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteSubscriptionModalLabel">Select delete effect</h5>
+                <button type="button" class="close" aria-label="Close" onclick="closeDeleteSubscriptionModal()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Do you want to delete subscription for series or occurence?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary"
+                        onclick="confirmDelete(true)"
+                        @if (Model.RecurringType == null)
+                        {
+                            <text>disabled</text>
+                        }
+                >
+                    Series
+                </button>
+                <button type="button" class="btn btn-primary"
+                        onclick="confirmDelete(false)">
+                    Occurrence
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts 
+{
+    <script>
+        let currentSubscription = null;
+        const allSubscriptions = @Html.Raw(Json.Serialize(Model.EventSubscriptions));
+
+        $(document).ready(function () {
+            $("#saveSubscriptionModal").on("click", (e) => { if ($(e.target).hasClass("modal")) closeSaveSubscriptionModal(); });
+
+            $("#subscription-name,#subscription-email,#subscription-time,#subscription-message")
+                .on("input", checkFormCompletion);
+        });
+
+        function showSaveSubscriptionModal(subscriptionId) {
+            const subscription = allSubscriptions.find(s => s.id === +subscriptionId);
+            currentSubscription = subscription;
+            $("#saveSubscriptionModal").modal("show");
+            updateSaveSubscriptionModal();
+        }
+
+        function showDeleteSubscriptionModal(subscriptionId) {
+            const subscription = allSubscriptions.find(s => s.id === +subscriptionId);
+            currentSubscription = subscription;
+            $("#deleteSubscriptionModal").modal("show");
+        }
+
+        function saveSubscription(isSeries) {
+            const formData = {
+                Id: currentSubscription?.id || 0,
+                Name: $("#subscription-name").val(),
+                ReceiverEmail: $("#subscription-email").val(),
+                NotificationTime: $("#subscription-time").val(),
+                Message: $("#subscription-message").val(),
+                OccurrenceId: '@Model.Id',
+                IsSeries: isSeries
+            };
+
+            console.log("Save: ", JSON.stringify(formData))
+
+            $.ajax({
+                url: "/Subscription/Save",
+                type: "POST",
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (data) {
+                    if (data.redirectTo) {
+                        window.location.href = data.redirectTo;
+                    }
+                },
+                error: function (error) {
+                    console.error("Error sending form data:", error);
+                }
+            });
+            closeSaveSubscriptionModal();
+        }
+
+        function confirmDelete(isSeries) {
+            const deleteModel = {
+                subscriptionId: currentSubscription?.id || 0,
+                isSeries
+            };
+
+            console.log('confirmDelete: ' + JSON.stringify(deleteModel));
+
+            $.ajax({
+                url: `/Subscription/Delete?subscriptionId=${currentSubscription?.id || 0}&isSeries=${isSeries}`,
+                type: "POST",
+                contentType: 'application/json',
+                success: function (data) {
+                    if (data.redirectTo) {
+                        window.location.href = data.redirectTo;
+                    }
+                },
+                error: function (error) {
+                    console.error("Error sending form data:", error);
+                }
+            });
+        }
+
+        function closeSaveSubscriptionModal() {
+            currentSubscription = null;
+            updateSaveSubscriptionModal();
+            $("#saveSubscriptionModal").modal("hide");
+        }
+
+        function closeDeleteSubscriptionModal() {
+            $("#deleteSubscriptionModal").modal("hide");
+        }
+
+        function updateSaveSubscriptionModal() {
+            $("#subscription-name").val(currentSubscription?.name || "");
+            $("#subscription-email").val(currentSubscription?.receiverEmail || "");
+            $("#subscription-time").val(currentSubscription?.notificationTime);
+            $("#subscription-message").val(currentSubscription?.message || "");
+        }
+
+        function checkFormCompletion() {
+            const isReccuringEvent = @Html.Raw(Json.Serialize(Model.RecurringType)) !== null;
+            console.log("isReccuringEvent: " + isReccuringEvent);
+            const formCompleted = $("#subscription-name").val() && $("#subscription-email").val();
+
+            $("#seriesButton, #occurrenceButton").prop("disabled", !formCompleted);
+            $("#seriesButton").prop("disabled", !isReccuringEvent);
+        }
+    </script>
+}
