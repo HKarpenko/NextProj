@@ -49,8 +49,12 @@ namespace Infrastructure.Repositories
             if (subscription != null)
             {
                 _context.EventSubscriptions.Remove(subscription);
-                await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -6,7 +6,7 @@ namespace Application.Interfaces
     {
         Task<long> DeleteSubscription(long subscriptionId, bool isSeries);
         List<EventSubscriptionViewModel> GetSubscriptionsByOccurrenceId(long occurrenceId);
-        void AddSubscription(SaveEventSubscriptionViewModel saveModel);
-        void UpdateSubscription(SaveEventSubscriptionViewModel saveModel);
+        Task AddSubscription(SaveEventSubscriptionViewModel saveModel);
+        Task UpdateSubscription(SaveEventSubscriptionViewModel saveModel);
     }
 }

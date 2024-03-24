@@ -16,17 +16,17 @@ namespace Presentation.Controllers
         }
 
         [HttpPost]
-        public IActionResult Save([FromBody] SaveEventSubscriptionViewModel model)
+        public async Task<IActionResult> Save([FromBody] SaveEventSubscriptionViewModel model)
         {
             if (ModelState.IsValid)
             {
                 if (model.Id == 0)
                 {
-                    _subscriptionService.AddSubscription(model);
+                    await _subscriptionService.AddSubscription(model);
                 }
                 else
                 {
-                    _subscriptionService.UpdateSubscription(model);
+                    await _subscriptionService.UpdateSubscription(model);
                 }
 
                 return Json(new { redirectTo = Url.Action("Details", "Eventing", new { id = model.OccurrenceId }) });

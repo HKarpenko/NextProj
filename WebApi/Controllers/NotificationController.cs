@@ -21,7 +21,7 @@ namespace Notification.WebApi.Controllers
         {
             Log.Debug($"Create notification job");
             var result = _notificationService.ScheduleEmailJob(eventSubscription);
-            return Ok(false);
+            return Ok(result);
         }
 
         [HttpPut]
